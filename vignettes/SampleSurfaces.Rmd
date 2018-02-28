@@ -42,7 +42,6 @@ nsim=10  # number of realizations of each simulation to generate
 This section can be editied to create many kinds of landscapes (and not just from a variogram)
 ```{r, message=F, results='hide', warning=F}
 res=foreach(i=1:nrow(parameters),.combine=rbind.data.frame) %dopar%{
-  print(i)
   parms=parameters[i,]
   # Specify the the spatial model - can edit for different types of models 
   spatial_model=vgm(
@@ -53,10 +52,13 @@ res=foreach(i=1:nrow(parameters),.combine=rbind.data.frame) %dopar%{
   # Create the 'model'
   g.dummy <- gstat(formula=z~1, locations=~x+y, dummy=T, beta=1, 
                    model=spatial_model, nmax=1)
-  # Make the surfaces and tidy them up
+  # extract variogram line
+  g.vg=variogramLine(spatial_model,maxdist=500)
+    # Make the surfaces and tidy them up
   pred <- cbind.data.frame(parms,
                            predict(g.dummy, newdata=xy, nsim=nsim)%>%
-                             gather(sim,value,-x,-y))
+                             gather(sim,value,-x,-y))%>%
+    bind_rows(cbind.data.frame(parms,x=g.vg$dist,y=NA,sim="VG",value=g.vg$gamma))
   return(pred)
 }
 ```
@@ -65,6 +67,21 @@ Then we can compare how the various metrics describe the variability.  I'm not t
 
 Disadvantages: the landscapes are artifical (though not more artifical than the checkerboard, etc.). I've thought about applying some sort of post-processing to 'erode' the landscape into something that looks more natural but haven't taken this idea very far.
 
+## Plot Variograms
+
+```{r, fig.width=10,fig.height=10,results='hide'}
+
+    filter(res,sim=="VG")%>%
+    mutate(id=paste(nug,sill,range,sep="_"))%>%
+    ggplot(aes(x=x,y=value,col=nug,group=id))+
+    geom_line()+
+    facet_grid(range~sill,labeller = label_both)+
+  scale_y_log10()+
+  scale_x_log10()+
+  xlab("Log Distance")+
+  ylab("Log Semivariance")
+
+```
 
 ## Plot Simulated landscapes
 
@@ -94,7 +111,7 @@ Can threshold the continuous values to generate discrete patches if desired.  Th
 
 ```{r, fig.width=10,fig.height=10,results='hide'}
 
-filter(res,range==100,sill==1000)%>%
+filter(res,range==100,sill==1000,sim!="VG")%>%
     mutate(categorical=
              cut(value,
                  quantile(value,

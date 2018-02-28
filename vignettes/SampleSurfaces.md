@@ -46,7 +46,6 @@ This section can be editied to create many kinds of landscapes (and not just fro
 
 ```r
 res=foreach(i=1:nrow(parameters),.combine=rbind.data.frame) %dopar%{
-  print(i)
   parms=parameters[i,]
   # Specify the the spatial model - can edit for different types of models 
   spatial_model=vgm(
@@ -57,10 +56,13 @@ res=foreach(i=1:nrow(parameters),.combine=rbind.data.frame) %dopar%{
   # Create the 'model'
   g.dummy <- gstat(formula=z~1, locations=~x+y, dummy=T, beta=1, 
                    model=spatial_model, nmax=1)
-  # Make the surfaces and tidy them up
+  # extract variogram line
+  g.vg=variogramLine(spatial_model,maxdist=500)
+    # Make the surfaces and tidy them up
   pred <- cbind.data.frame(parms,
                            predict(g.dummy, newdata=xy, nsim=nsim)%>%
-                             gather(sim,value,-x,-y))
+                             gather(sim,value,-x,-y))%>%
+    bind_rows(cbind.data.frame(parms,x=g.vg$dist,y=NA,sim="VG",value=g.vg$gamma))
   return(pred)
 }
 ```
@@ -69,6 +71,22 @@ Then we can compare how the various metrics describe the variability.  I'm not t
 
 Disadvantages: the landscapes are artifical (though not more artifical than the checkerboard, etc.). I've thought about applying some sort of post-processing to 'erode' the landscape into something that looks more natural but haven't taken this idea very far.
 
+## Plot Variograms
+
+
+```r
+    filter(res,sim=="VG")%>%
+    mutate(id=paste(nug,sill,range,sep="_"))%>%
+    ggplot(aes(x=x,y=value,col=nug,group=id))+
+    geom_line()+
+    facet_grid(range~sill,labeller = label_both)+
+  scale_y_log10()+
+  scale_x_log10()+
+  xlab("Log Distance")+
+  ylab("Log Semivariance")
+```
+
+![](SampleSurfaces_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
 
 ## Plot Simulated landscapes
 
@@ -90,7 +108,7 @@ ps=foreach(r=unique(parameters$range))%dopar%{
 ggarrange(plotlist=ps,ncol=1,align="v")
 ```
 
-![](SampleSurfaces_files/figure-html/unnamed-chunk-5-1.png)<!-- -->![](SampleSurfaces_files/figure-html/unnamed-chunk-5-2.png)<!-- -->![](SampleSurfaces_files/figure-html/unnamed-chunk-5-3.png)<!-- -->
+![](SampleSurfaces_files/figure-html/unnamed-chunk-6-1.png)<!-- -->![](SampleSurfaces_files/figure-html/unnamed-chunk-6-2.png)<!-- -->![](SampleSurfaces_files/figure-html/unnamed-chunk-6-3.png)<!-- -->
 
 
 ## Simulate patchy landscape
@@ -99,7 +117,7 @@ Can threshold the continuous values to generate discrete patches if desired.  Th
 
 
 ```r
-filter(res,range==100,sill==1000)%>%
+filter(res,range==100,sill==1000,sim!="VG")%>%
     mutate(categorical=
              cut(value,
                  quantile(value,
@@ -112,5 +130,5 @@ filter(res,range==100,sill==1000)%>%
     coord_equal()
 ```
 
-![](SampleSurfaces_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+![](SampleSurfaces_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
 
