@@ -1,17 +1,28 @@
 ### Surface metric calculations for synthetic geo paper
 
 # Written by ACS 3 Nov 2018
-# Last edited by ACS 3 Nov 2018
+# Last edited by ACS 12 Nov 2018
 
 ### helpful resources
 # https://www.keyence.com/ss/products/microscope/roughness/surface/parameters.jsp
 # https://link-springer-com.proxy2.cl.msu.edu/content/pdf/10.1007%2F978-1-84800-297-5_22.pdf
 # https://www.usna.edu/Users/physics/vanhoy/_files/SP425/LabDocs/STM/SPIP%204_4_3%20R/SPIP_Manual_4_2.pdf
 
+# also see below for other abbott-firestone curve definition
+# ftp://ftp.astmtmc.cmu.edu/docs/diesel/mack/minutes/2013/Mack.2013-02-07.Meeting/21763%20pdf.pdf
+
+# probably need to flip min/max values to get correct curve -- done 11/12/18
+
+# see https://trac.osgeo.org/grass/browser/grass/trunk/raster/r.surf.area/area.c 
+# for surface area (from GRASS GIS)
+
+# https://stackoverflow.com/questions/40376299/r-fft-fourier-spectrum-of-image
+
 # load packages -----------------------------------------------------------
 
 library(raster)
 library(tibble)
+library(spatialEco)
 
 # functions ---------------------------------------------------------------
 
@@ -90,46 +101,70 @@ y <- coordinates(newrast2)[, 2]
 # calculate cdf and other necessary components ----------------------------
 
 # calculate cumulative probability density function of surface 'height' (= ndvi)
-mod <- ecdf(z)
+mod <- ecdf((1 - z))
 
 # get cumulative values
-newy <- environment(mod)$x
+newy <- (1 - environment(mod)$x)
 newx <- environment(mod)$y
 
 # flip axes so that value is on the y-axis and frequency is on the x-axis
-plot(newy ~ newx, ylim = (rev(range(newy)))) # approximation of the bearing area curve
+plot(newy ~ newx)#, ylim = (rev(range(newy)))) # approximation of the bearing area curve
 
 # find 40% of curve with least decline
-# get each 40% segment, pick one with smallest slope
+# use symmetric difference quotient to estimate the derivative at evenly spaced points
+# then find 40% consecutive section with lowest mean slope
 even_x <- seq(0, 1, length.out = 100000)
-even_y <- quantile(mod, probs = even_x)
+even_y <- (1 - quantile(mod, probs = even_x))
 forty_length <- 0.4 * length(even_x)
-i <- 1
-while (i <= (length(even_x) - forty_length)) {
-  y1 <- even_y[[i]]
-  y2 <- even_y[[i + forty_length]]
-  x1 <- even_x[[i]]
-  x2 <- even_x[[i + forty_length]]
-  if (i == 1) {
-    slopes <- data.frame(slope = (y2 - y1) / (x2 - x1), xstart = x1, xend = x2)
+h <- 0.001
+i <- 1 # can't do difference quotient at very end
+while (i <= length(even_x)) {
+  if (i < 101) {
+    # newton's difference quotient at near end
+    fxh_pos <- (1 - quantile(mod, probs = (even_x[i] + h))[[1]])
+    fxh_neg <- (1 - quantile(mod, probs = (even_x[i]))[[1]])
+  } else if (i > 99900) {
+    # variation on newton's difference quotient at far end
+    fxh_pos <- (1 - quantile(mod, probs = (even_x[i]))[[1]])
+    fxh_neg <- (1 - quantile(mod, probs = (even_x[i] - h))[[1]])
   } else {
-    slopes <- rbind(slopes, data.frame(slope = (y2 - y1) / (x2 - x1), xstart = x1, xend = x2))
+    # symmetric difference quotient everywhere else (99800 points)
+    fxh_pos <- (1 - quantile(mod, probs = (even_x[i] + h))[[1]])
+    fxh_neg <- (1 - quantile(mod, probs = (even_x[i] - h))[[1]])
+  }
+  diff_quo <- (fxh_pos - fxh_neg) / (2 * h)
+  if (i == 1) {
+    slopes <- data.frame(slope = diff_quo, x = even_x[i])
+  } else {
+    slopes <- rbind(slopes, data.frame(slope = diff_quo, x = even_x[i]))
   }
   
   i <- i + 1
 }
+
+# calculate averages for each 40% segment
+for (i in 1:(length(even_x) - forty_length)) {
+  if (i == 1) {
+    means <- data.frame(slope = mean(slopes$slope[i:(i + forty_length)]), 
+                        xstart = slopes$x[i], xend = slopes$x[(i + forty_length)])
+  } else {
+    means <- rbind(means, data.frame(slope = mean(slopes$slope[i:(i + forty_length)]), 
+                        xstart = slopes$x[i], xend = slopes$x[(i + forty_length)]))
+  }
+}
+
 # x value of start of 40% section with smallest decline
-slope_min <- slopes[slopes$slope == min(slopes$slope),]
+slope_min <- means[means$slope == min(means$slope),]
 
 # calculate least-squares line for 40% of curve with smallest decline (lowest slope)
 lm_data <- data.frame(x = newx[newx >= slope_min$xstart & newx <= slope_min$xend],
-                      y = newy[newx >= slope_min$xstart & newx <= slope_min$xend])
+                      y = (1 - newy[newx >= slope_min$xstart & newx <= slope_min$xend]))
 ls_line <- lm(y ~ x, data = lm_data)
-plot(newy ~ newx, ylim = (rev(range(newy)))) # approximation of the bearing area curve
+plot(newy ~ newx) # approximation of the bearing area curve
 abline(ls_line$coefficients[[1]], ls_line$coefficients[[2]], col = 'blue')
 
 # get value of ls line between 0 and 1
-pred_data <- remove_rownames(data.frame(x = even_x, y = even_y))
+pred_data <- remove_rownames(data.frame(x = even_x, y = (1 - even_y)))
 pred_data$y <- predict(ls_line, newdata = pred_data)
 
 # what is the ls line y-value at x = 0, x = 1?
@@ -145,8 +180,8 @@ abline(v = Smr1, col = 'green')
 abline(v = Smr2, col = 'green')
 
 # calculate height at various percentiles of z (see fig.2 in Kedron et al. 2018 paper)
-z05 <- quantile(mod, probs = c(0.05))[[1]]
-z80 <- quantile(mod, probs = c(0.80))[[1]]
+z05 <- (1 - quantile(mod, probs = c(0.05))[[1]])
+z80 <- (1 - quantile(mod, probs = c(0.80))[[1]])
 
 # basic surface metrics ---------------------------------------------------
 
@@ -177,7 +212,7 @@ Smean <- mean(z[z > 0])
 
 # surface bearing index = ratio of Sq to height from top of surface to height at 
 # 5% of bearing area (z05)
-Sbi <- Sq/z05
+Sbi <- Sq / z05
 
 # valley fluid retention index = void volume (area under Abbott curve) in 'valley' zone
 # see fig.2a from Kedron et al. (2018)
@@ -193,10 +228,10 @@ Sci <- core_above - Svi
 Sk <- abs(ls_int_high - ls_int_low)
 
 # reduced valley depth = height of triangle drawn at 100% on Abbott curve 
-Svk <- abs(quantile(mod, probs = 1) - quantile(mod, probs = Smr2))[[1]]
+Svk <- abs((1 - quantile(mod, probs = 1)) - (1 - quantile(mod, probs = Smr2)))[[1]]
 
 # reduced peak height = height of upper left triangle in abbott curve
-Spk <- abs(quantile(mod, probs = 0) - quantile(mod, probs = Smr1))[[1]]
+Spk <- abs((1 - quantile(mod, probs = 0)) - (1 - quantile(mod, probs = Smr1)))[[1]]
 
 # calculate local variables -----------------------------------------------
 # from Image Metrology:
@@ -229,6 +264,22 @@ for (i in 2:(N - 1)) {
     }
   }
 }
+
 # clean up peak/valley dfs
 peaks <- peaks[-1,]
 valleys <- valleys[-1,]
+
+# summit density = number of local peaks per area
+Sds <- nrow(peaks) / ((N - 1) * (M - 1))
+
+# ten-point height = avg. height above mean surface for five highest local maxima plus avg. 
+# height below for five lowest local minima
+top_peaks <- peaks[order(peaks$val, decreasing = TRUE)[1:5],]
+bottom_valleys <- valleys[order(valleys$val)[1:5],]
+S10z <- (sum(top_peaks$val) + sum(abs(bottom_valleys$val))) / 5
+
+# fourier variables -------------------------------------------------------
+
+# get fourier transform
+zmat <- matrix(z, ncol = M, nrow = N, byrow = TRUE)
+ft <- fft(zmat)
