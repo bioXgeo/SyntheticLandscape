@@ -26,6 +26,7 @@ library(spatialEco)
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/fftshift.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/simpsons.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/bestfit.R')
+source('/home/annie/Documents/SyntheticLandscape/surface_metrics/localsurface.R')
 
 # functions ---------------------------------------------------------------
 
@@ -180,36 +181,13 @@ Spk <- abs((1 - quantile(mod, probs = 0)) - (1 - quantile(mod, probs = Smr1)))[[
 # local minimum = points where all 8 surrounding points are higher & below zero
 # local maximum = points where all 8 surrounding points are lower & above zero
 
-# local peaks (maxima) and valleys (minima) -- coordinates and values
-# this takes a while (should parallelize!)
-N <- dim(newrast2)[1]
-M <- dim(newrast2)[2]
-peaks <- data.frame(x = NA, y = NA, val = NA, ind = NA, row = NA, col = NA)
-valleys <- data.frame(x = NA, y = NA, val = NA, ind = NA, row = NA, col = NA)
-for (i in 2:(N - 1)) {
-  for (j in 2:(M - 1)) {
-    center <- newrast2[i, j]
-    surrounding <- newrast2[(i - 1):(i + 1), (j - 1):(j + 1)]
-    surrounding <- surrounding[-5]
-    peak <- ((sum(center > surrounding) == length(surrounding)) & center > 0) # has to be positive
-    valley <- ((sum(center < surrounding) == length(surrounding)) & center < 0) # has to be negative
-    
-    # get raster index
-    ind <- (((i - 1) * M) + j)
-    
-    if (peak == TRUE) {
-      ind <- (((i - 1) * M) + j)
-      peaks <- rbind(peaks, data.frame(x = x[ind], y = y[ind], val = center, ind = ind, row = i, col = j))
-    } 
-    if (valley == TRUE) {
-      valleys <- rbind(valleys, data.frame(x = x[ind], y = y[ind], val = center, ind = ind, row = i, col = j))
-    }
-  }
-}
+# re-define N/M to raster
+N <- nrow(newrast2)
+M <- ncol(newrast2)
 
-# clean up peak/valley dfs
-peaks <- peaks[-1,]
-valleys <- valleys[-1,]
+# local peaks (maxima) and valleys (minima) -- coordinates and values
+peaks <- findpeaks(newrast2)
+valleys <- findvalleys(newrast2)
 
 # summit density = number of local peaks per area
 Sds <- nrow(peaks) / ((N - 1) * (M - 1))
