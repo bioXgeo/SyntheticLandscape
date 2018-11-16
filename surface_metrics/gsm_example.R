@@ -24,40 +24,10 @@ library(raster)
 library(tibble)
 library(spatialEco)
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/fftshift.R')
+source('/home/annie/Documents/SyntheticLandscape/surface_metrics/simpsons.R')
+source('/home/annie/Documents/SyntheticLandscape/surface_metrics/bestfit.R')
 
 # functions ---------------------------------------------------------------
-
-# simpson's rule area under curve for empirical functions
-simpsons_above <- function(model, a, b, n = 100) {
-  # determines area above curve (just within rect defined by area below)
-  # numerical integral of fun from a to b
-  # using the trapezoid rule with n subdivisions
-  # assume a < b and n is a positive integer
-  h <- (b - a) / n # sub-interval width
-  x <- seq(a, b, by = h)
-  y <- quantile(model, probs = x) # get y-values of inverse cdf function
-  s <- ((b - a) / (3 * n)) * (y[[1]] + 
-                                sum(4 * y[seq(2, n - 1, by = 2)]) + 
-                                sum(2 * y[seq(3, n - 1, by = 2)]) +
-                                y[[n]])
-  # get inverse of s for actual area above curve
-  area_above <- ((max(y) - min(y)) * (max(x) - min(x))) - s
-  return(area_above)
-}
-
-simpsons_below <- function(model, a, b, n = 100) {
-  # numerical integral of fun from a to b
-  # using the trapezoid rule with n subdivisions
-  # assume a < b and n is a positive integer
-  h <- (b - a) / n # sub-interval width
-  x <- seq(a, b, by = h)
-  y <- quantile(model, probs = x) # get y-values of inverse cdf function
-  s <- ((b - a) / (3 * n)) * (y[[1]] + 
-                                sum(4 * y[seq(2, n - 1, by = 2)]) + 
-                                sum(2 * y[seq(3, n - 1, by = 2)]) +
-                                y[[n]])
-  return(s)
-}
 
 # radian/degree conversions
 rad2deg <- function(rad) {(rad * 180) / (pi)}
@@ -122,54 +92,21 @@ even_x <- seq(0, 1, length.out = 100000)
 even_y <- (1 - quantile(mod, probs = even_x))
 forty_length <- 0.4 * length(even_x)
 h <- 0.001
-i <- 1 # can't do difference quotient at very end
-while (i <= length(even_x)) {
-  if (i < 101) {
-    # newton's difference quotient at near end
-    fxh_pos <- (1 - quantile(mod, probs = (even_x[i] + h))[[1]])
-    fxh_neg <- (1 - quantile(mod, probs = (even_x[i]))[[1]])
-  } else if (i > 99900) {
-    # variation on newton's difference quotient at far end
-    fxh_pos <- (1 - quantile(mod, probs = (even_x[i]))[[1]])
-    fxh_neg <- (1 - quantile(mod, probs = (even_x[i] - h))[[1]])
-  } else {
-    # symmetric difference quotient everywhere else (99800 points)
-    fxh_pos <- (1 - quantile(mod, probs = (even_x[i] + h))[[1]])
-    fxh_neg <- (1 - quantile(mod, probs = (even_x[i] - h))[[1]])
-  }
-  diff_quo <- (fxh_pos - fxh_neg) / (2 * h)
-  if (i == 1) {
-    slopes <- data.frame(slope = diff_quo, x = even_x[i])
-  } else {
-    slopes <- rbind(slopes, data.frame(slope = diff_quo, x = even_x[i]))
-  }
-  
-  i <- i + 1
-}
-
-# calculate averages for each 40% segment
-for (i in 1:(length(even_x) - forty_length)) {
-  if (i == 1) {
-    means <- data.frame(slope = mean(slopes$slope[i:(i + forty_length)]), 
-                        xstart = slopes$x[i], xend = slopes$x[(i + forty_length)])
-  } else {
-    means <- rbind(means, data.frame(slope = mean(slopes$slope[i:(i + forty_length)]), 
-                        xstart = slopes$x[i], xend = slopes$x[(i + forty_length)]))
-  }
-}
+slopes <- slopecalc(even_x, h) # calculate slope at every point
+means <- slopemeans(slopes) # calculate averages for each 40% segment
 
 # x value of start of 40% section with smallest decline
 slope_min <- means[means$slope == min(means$slope),]
 
 # calculate least-squares line for 40% of curve with smallest decline (lowest slope)
 lm_data <- data.frame(x = newx[newx >= slope_min$xstart & newx <= slope_min$xend],
-                      y = (1 - newy[newx >= slope_min$xstart & newx <= slope_min$xend]))
+                      y = newy[newx >= slope_min$xstart & newx <= slope_min$xend])
 ls_line <- lm(y ~ x, data = lm_data)
 plot(newy ~ newx) # approximation of the bearing area curve
 abline(ls_line$coefficients[[1]], ls_line$coefficients[[2]], col = 'blue')
 
 # get value of ls line between 0 and 1
-pred_data <- remove_rownames(data.frame(x = even_x, y = (1 - even_y)))
+pred_data <- remove_rownames(data.frame(x = even_x, y = even_y))
 pred_data$y <- predict(ls_line, newdata = pred_data)
 
 # what is the ls line y-value at x = 0, x = 1?
@@ -179,8 +116,8 @@ abline(h = ls_int_high, col = 'red')
 abline(h = ls_int_low, col = 'red')
 
 # Smr1/Smr2 = x values that correspond to cdf y values at ls_int_high/low 
-Smr1 <- mod(ls_int_high)
-Smr2 <- mod(ls_int_low)
+Smr1 <- mod(1 - ls_int_high)
+Smr2 <- mod(1 - ls_int_low)
 abline(v = Smr1, col = 'green')
 abline(v = Smr2, col = 'green')
 
@@ -297,7 +234,11 @@ phase <- atan(Im(ft_shift) / Re(ft_shift))
 power <- (Im(ft_shift) ^ 2) + (Im(ft_shift) ^ 2)
 
 test <- newrast2
-test <- setValues(test, log(amplitude)) # get the image back
+test <- setValues(test, log(amplitude)) # plot amplitude
+
+# Each pixel in the Fourier transform has a coordinate (h,k) representing 
+# the contribution of the sine wave with x-frequency h, and y-frequency k 
+# in the Fourier transform.
 
 p <- plot_ly(showscale = FALSE) %>%
   add_surface(z = ~zmat)
