@@ -23,6 +23,7 @@
 library(raster)
 library(tibble)
 library(spatialEco)
+source('/home/annie/Documents/SyntheticLandscape/surface_metrics/fftshift.R')
 
 # functions ---------------------------------------------------------------
 
@@ -57,6 +58,10 @@ simpsons_below <- function(model, a, b, n = 100) {
                                 y[[n]])
   return(s)
 }
+
+# radian/degree conversions
+rad2deg <- function(rad) {(rad * 180) / (pi)}
+deg2rad <- function(deg) {(deg * pi) / (180)}
 
 # import testing data -----------------------------------------------------
 
@@ -282,4 +287,27 @@ S10z <- (sum(top_peaks$val) + sum(abs(bottom_valleys$val))) / 5
 
 # get fourier transform
 zmat <- matrix(z, ncol = M, nrow = N, byrow = TRUE)
+# complex spectrum from fast fourier transform
 ft <- fft(zmat)
+ft_shift <- fftshift(ft)
+
+# amplitude and phase spectrum
+amplitude <- sqrt((Re(ft_shift) ^ 2) + (Im(ft_shift) ^ 2))
+phase <- atan(Im(ft_shift) / Re(ft_shift))
+power <- (Im(ft_shift) ^ 2) + (Im(ft_shift) ^ 2)
+
+test <- newrast2
+test <- setValues(test, log(amplitude)) # get the image back
+
+p <- plot_ly(showscale = FALSE) %>%
+  add_surface(z = ~zmat)
+p
+
+# Stdi = max amplitude / mean amplitude? are all angles even?
+summary(matrix(rad2deg(phase), ncol = 1)) # symmmetric 90 to 90, so yes
+
+# Std
+Std <- rad2deg(phase[which(amplitude == max(amplitude))])
+
+# Stdi
+Stdi <- mean(amplitude) / sum(amplitude[rad2deg(phase) == Std])
