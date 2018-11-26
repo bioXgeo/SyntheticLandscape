@@ -21,6 +21,12 @@
 # best resource for fourier and surface area/slope variables
 # https://www.ntmdt-si.ru/data/media/files/manuals/image_analisys_p9_nov12.e.pdf
 
+
+# changes needed ----------------------------------------------------------
+
+# should really create a function to create various shifts in x and y directions,
+# since this is used a lot in several of the other functions
+
 # load packages -----------------------------------------------------------
 
 library(raster)
@@ -33,6 +39,7 @@ source('/home/annie/Documents/SyntheticLandscape/surface_metrics/simpsons.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/bestfit.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/localsurface.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/sdq.R')
+source('/home/annie/Documents/SyntheticLandscape/surface_metrics/surfacearea.R')
 
 # functions ---------------------------------------------------------------
 
@@ -161,11 +168,6 @@ Sp <- abs(max(z))
 # mean peak height = average peak height
 Smean <- mean(z[z > 0])
 
-# surface area ratio = ratio between surface area to area of flat plane with same 
-# x,y dimensions
-volume <- sum(unlist(lapply(z, function(x) {abs(x) * xscale * yscale}))) # sq. m
-# see notebook
-
 # abbott curve variables --------------------------------------------------
 
 # surface bearing index = ratio of Sq to height from top of surface to height at 
@@ -221,6 +223,9 @@ Sdq <- sdq(newrast2)
 
 # area root mean square slope = similar to Sdq but includes more neighbor pixels in slope computation
 Sdq6 <- sdq6(newrast2)
+
+# surface area ratio = ratio between surface area to area of flat plane with same x,y dimensions
+Sdr <- sdr(newrast2)
 
 # fourier variables -------------------------------------------------------
 
