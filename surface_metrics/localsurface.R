@@ -12,12 +12,11 @@ findpeaks <- function(rast) {
   
   # center values, indices, and coordinates
   centers <- getValues(rast)
-  ind <- seq(1, length(centers))
   x <- coordinates(rast)[, 1]
   y <- coordinates(rast)[, 2]
   
   # create matrix of centers to get surrounding from
-  xmat <- matrix(centers, nrow = N, ncol = M)
+  xmat <- matrix(centers, nrow = N, ncol = M, byrow = TRUE)
   
   # row/col of each center
   rows <- rep(1:N, each = M)

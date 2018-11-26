@@ -1,7 +1,7 @@
 ### Surface metric calculations for synthetic geo paper
 
 # Written by ACS 3 Nov 2018
-# Last edited by ACS 12 Nov 2018
+# Last edited by ACS 26 Nov 2018
 
 ### helpful resources
 # https://www.keyence.com/ss/products/microscope/roughness/surface/parameters.jsp
@@ -18,15 +18,21 @@
 
 # https://stackoverflow.com/questions/40376299/r-fft-fourier-spectrum-of-image
 
+# best resource for fourier and surface area/slope variables
+# https://www.ntmdt-si.ru/data/media/files/manuals/image_analisys_p9_nov12.e.pdf
+
 # load packages -----------------------------------------------------------
 
 library(raster)
 library(tibble)
 library(spatialEco)
+library(dplyr)
+library(plotly)
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/fftshift.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/simpsons.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/bestfit.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/localsurface.R')
+source('/home/annie/Documents/SyntheticLandscape/surface_metrics/sdq.R')
 
 # functions ---------------------------------------------------------------
 
@@ -46,6 +52,10 @@ newrast <- crop(rast, newext)
 
 # get values of raster
 vals <- getValues(newrast)
+
+# set scale (meters here)
+xscale <- 30
+yscale <- 30
 
 # calculate best-fit plane and variables ------------------------------------
 
@@ -151,6 +161,11 @@ Sp <- abs(max(z))
 # mean peak height = average peak height
 Smean <- mean(z[z > 0])
 
+# surface area ratio = ratio between surface area to area of flat plane with same 
+# x,y dimensions
+volume <- sum(unlist(lapply(z, function(x) {abs(x) * xscale * yscale}))) # sq. m
+# see notebook
+
 # abbott curve variables --------------------------------------------------
 
 # surface bearing index = ratio of Sq to height from top of surface to height at 
@@ -189,14 +204,23 @@ M <- ncol(newrast2)
 peaks <- findpeaks(newrast2)
 valleys <- findvalleys(newrast2)
 
+# find top 5 peaks, valleys
+top_peaks <- peaks[order(peaks$val, decreasing = TRUE)[1:5],]
+bottom_valleys <- valleys[order(valleys$val)[1:5],]
+
 # summit density = number of local peaks per area
 Sds <- nrow(peaks) / ((N - 1) * (M - 1))
 
 # ten-point height = avg. height above mean surface for five highest local maxima plus avg. 
 # height below for five lowest local minima
-top_peaks <- peaks[order(peaks$val, decreasing = TRUE)[1:5],]
-bottom_valleys <- valleys[order(valleys$val)[1:5],]
 S10z <- (sum(top_peaks$val) + sum(abs(bottom_valleys$val))) / 5
+
+# root mean square slope = variance in local slope across the surface
+# note: different than terrain result
+Sdq <- sdq(newrast2)
+
+# area root mean square slope = similar to Sdq but includes more neighbor pixels in slope computation
+Sdq6 <- sdq6(newrast2)
 
 # fourier variables -------------------------------------------------------
 
@@ -211,22 +235,39 @@ amplitude <- sqrt((Re(ft_shift) ^ 2) + (Im(ft_shift) ^ 2))
 phase <- atan(Im(ft_shift) / Re(ft_shift))
 power <- (Im(ft_shift) ^ 2) + (Im(ft_shift) ^ 2)
 
+amplitude <- (sqrt(Re(ft) ^ 2) + (Im(ft) ^ 2))
+
+# get log-log frequency-amplitude
+loglog_data <- data.frame(amp = log(matrix(amplitude, ncol = 1)), freq = log(seq(1, length(amplitude))))
+loglog <- lm(amp ~ freq, data = loglog_data)
+
+### TESTING - HERE DOWN
+
+# plot amplit
 test <- newrast2
 test <- setValues(test, log(amplitude)) # plot amplitude
-
+test2 <- setValues(test, phase)
 # Each pixel in the Fourier transform has a coordinate (h,k) representing 
 # the contribution of the sine wave with x-frequency h, and y-frequency k 
 # in the Fourier transform.
 
+# view amplitude
 p <- plot_ly(showscale = FALSE) %>%
-  add_surface(z = ~zmat)
+  add_surface(z = ~log(amplitude))
 p
 
-# Stdi = max amplitude / mean amplitude? are all angles even?
+# check if all angles exist...
 summary(matrix(rad2deg(phase), ncol = 1)) # symmmetric 90 to 90, so yes
 
-# Std
+# dominant texture direction = angle of dominating texture in image calculated from
+# fourier spectrum
 Std <- rad2deg(phase[which(amplitude == max(amplitude))])
 
-# Stdi
+# texture direction index = relative dominance of Std over other directions of texture, 
+# defined as avg. amplitude sum over all directions divided by amplitude sum of 
+# dominating direction
 Stdi <- mean(amplitude) / sum(amplitude[rad2deg(phase) == Std])
+
+# fractal dimension = calculated for different angles of angular spectrum by analyzing 
+# fourier amplitude spectrum
+Sfd <- 2 - loglog$coefficients[2]
