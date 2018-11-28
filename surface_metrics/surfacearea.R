@@ -52,26 +52,10 @@ sdr <- function(rast) {
   # create matrix of centers to get surrounding from
   zmat <- matrix(((z - min(z)) / (max(z) - min(z))), nrow = N, ncol = M, byrow = TRUE)
   
-  # row/col of each center
-  rows <- rep(1:N, each = M)
-  cols <- rep(rep(1:M), N)
-  
-  # get rid of edge points
-  rm_inds <- which(rows == max(rows) | cols == max(cols))
-  z <- z[-rm_inds]
-  x <- x[-rm_inds]
-  y <- y[-rm_inds]
-  rows <- rows[-rm_inds]
-  cols <- cols[-rm_inds]
-  
-  # for every point, get z of x + 1, z of y + 1
-  xmax <- rows + 1
-  ymax <- cols + 1
-  ind <- seq(1, length(z))
-  z <- z
-  z_ypl <- unlist(lapply(ind, function(i) {zmat[xmax[i], cols[i]]}))
-  z_xpl <- unlist(lapply(ind, function(i) {zmat[rows[i], ymax[i]]}))
-  z_xplypl <- unlist(lapply(ind, function(i) {zmat[xmax[i], ymax[i]]}))
+  z <- zshift(zmat, xdist = 0, ydist = 0, xrm = 1, yrm = 1)
+  z_ypl <- zshift(zmat, xdist = 0, ydist = 1, xrm = 1)
+  z_xpl <- zshift(zmat, xdist = 1, ydist = 0, yrm = 1)
+  z_xplypl <- zshift(zmat, xdist = 1, ydist = 1)
   
   # normalize deltas
   divide <- mean(deltax, deltay)
@@ -79,7 +63,7 @@ sdr <- function(rast) {
   deltay <- deltay / divide
   
   # calculate area - problem with ndvi not being equal to x, y units
-  # NEED TO SCALE TO MATCH X, Y UNITS...HOW??
+  # NEED TO SCALE TO MATCH X, Y UNITS -- this should be checked!
   akl1 <- ((1 / 2) *
              (sqrt((deltay ^ 2) + ((z_ypl - z) ^ 2)) *
                 sqrt((deltax ^ 2) + ((z_xpl - z) ^ 2)))) +
@@ -97,7 +81,7 @@ sdr <- function(rast) {
   akl <- (1 / 2) * (akl1 + akl2)
   
   # calculate area ratio
-  adr <- (sum(akl, na.rm = TRUE) - flat_area) / flat_area
+  adr <- ((sum(akl, na.rm = TRUE) - flat_area) / flat_area) * 100
   
   return(adr)
 }

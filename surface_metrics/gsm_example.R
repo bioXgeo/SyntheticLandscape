@@ -21,7 +21,6 @@
 # best resource for fourier and surface area/slope variables
 # https://www.ntmdt-si.ru/data/media/files/manuals/image_analisys_p9_nov12.e.pdf
 
-
 # changes needed ----------------------------------------------------------
 
 # should really create a function to create various shifts in x and y directions,
@@ -34,6 +33,7 @@ library(tibble)
 library(spatialEco)
 library(dplyr)
 library(plotly)
+source('/home/annie/Documents/SyntheticLandscape/surface_metrics/zshift.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/fftshift.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/simpsons.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/bestfit.R')
@@ -226,6 +226,9 @@ Sdq6 <- sdq6(newrast2)
 
 # surface area ratio = ratio between surface area to area of flat plane with same x,y dimensions
 Sdr <- sdr(newrast2)
+
+# mean summit curvature = average principal curvature of local maximas on the surface
+Ssc <- ssc(newrast2, peaks)
 
 # fourier variables -------------------------------------------------------
 
