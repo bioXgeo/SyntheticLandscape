@@ -1,7 +1,7 @@
 ### Surface metric calculations for synthetic geo paper
 
 # Written by ACS 3 Nov 2018
-# Last edited by ACS 26 Nov 2018
+# Last edited by ACS 30 Nov 2018
 
 ### helpful resources
 # https://www.keyence.com/ss/products/microscope/roughness/surface/parameters.jsp
@@ -242,101 +242,90 @@ ft_shift <- fftshift(ft)
 # amplitude and phase spectrum
 amplitude <- sqrt((Re(ft_shift) ^ 2) + (Im(ft_shift) ^ 2))
 phase <- atan(Im(ft_shift) / Re(ft_shift))
-power <- (Re(ft_shift) ^ 2) + (Im(ft_shift) ^ 2)
 
-# shift to 180 to 0 instead of -90 to 90
-newphase <- phase + abs(min(phase))
-
-# dominant texture direction = angle of dominating texture in image calculated from
-# fourier spectrum
-Std <- rad2deg(newphase[amplitude == max(amplitude)])
-
-# texture direction index = relative dominance of Std over other directions of texture, 
-# defined as avg. amplitude sum over all directions divided by amplitude sum of 
-# dominating direction
-Stdi <- mean(amplitude) / max(amplitude)
-
-polar.plot(amplitude, rad2deg(newphase))
-
-# dominant radial wavelength = dominating wavelength found in radial fourier spectrum
-# accumulated amplitude for each radius
-acc_amp <- list()
-for (i in seq(1, max(amplitude))) {
-  temp <- sum(amplitude[amplitude < i]) / 2
-  acc_amp[i] <- temp
-}
-# we will say deltax = 1 for consistency?
-Srw <- (1 * (length(phase) - 1)) / min(which(unlist(acc_amp) == max(unlist(acc_amp))))
-
-
-### TESTING - HERE DOWN
-
-# take amplitude image, cut in half
+# take amplitude image, cut in half (y direction)
 amp_img <- newrast2
-amp_img <- setValues(test, amplitude)
+amp_img <- setValues(amp_img, amplitude)
 plot(amp_img)
-# crop in y-direction
 ymin <- ymax(amp_img) - ((ymax(amp_img) - ymin(amp_img)) / 2)
 amp_img <- crop(amp_img, c(xmin(amp_img), xmax(amp_img), ymin, ymax(amp_img)))
+
+# get origin of image (actually bottom center)
 origin <- c(mean(coordinates(amp_img)[,1]), ymin(amp_img))
-# number sample rays
+
+### line and circle calculations are taken from the plotrix functions draw.radial.line
+### and draw.circle
+# calculate rays extending from origin
 M <- 180
 j <- seq(0, (M - 1))
-alpha <- (pi * j) / M #angles
-# calculate spatial lines
-px <- c(0, 0.04)
+alpha <- (pi * j) / M # angles
+px <- c(0, 0.04) # line length
 linex <- unlist(lapply(seq(1, length(alpha)), function(x) origin[1] + px * cos(alpha[x])))
 liney <- unlist(lapply(seq(1, length(alpha)), function(x) origin[2] + px * sin(alpha[x])))
 linelist <- lapply(seq(1, length(linex), 2), 
                    FUN = function(i) Lines(Line(cbind(linex[i:(i + 1)], liney[i:(i + 1)])), ID = paste('l', i, sep = '')))
 lines <- SpatialLines(linelist, 
                       proj4string = CRS(proj4string(amp_img)))
-# crop lines to raster
-#lines <- crop(lines, extent(xmin(amp_img), xmax(amp_img), ymin, ymax(amp_img)))
+
+# plot and calculate amplitude sums along rays
 plot(amp_img)
 lines(lines)
-# summarize all amplitude points that overlap lines
 Aalpha <- list()
 for (i in 1:length(lines)) {
-  temp <- crop(lines[i], extent(xmin(amp_img), xmax(amp_img), ymin, ymax(amp_img)))
   Aalpha[i] <- extract(amp_img, lines[i], fun = sum)
 }
 
 std <- rad2deg(alpha[which(unlist(Aalpha) == max(unlist(Aalpha), na.rm = TRUE))])
 stdi <- mean(unlist(Aalpha), na.rm = TRUE) / max(unlist(Aalpha), na.rm = TRUE)
-# why 52???
+# why 52?
 
-
+# calculate half circles extending from origin
 nv <- 100
 angle.inc <- 2 * pi / nv
 angles <- seq(0, 2 * pi - angle.inc, by = angle.inc)
-radius <- seq(0, 0.04, 0.001)
-for (circle in 1:length(radius)) {
-  xv <- cos(angles) * radius[circle] + origin[1]
-  yv <- sin(angles) * radius[circle] + origin[2]
-}
-polyx <- unlist(lapply(seq(1, length(radius)), function(x) origin[1] + radius[x] * cos(angles)))
-polyy <- unlist(lapply(seq(1, length(radius)), function(x) origin[2] + radius[x] * sin(angles)))
-polylist <- lapply(seq(1, length(polyx), 100), 
-                   FUN = function(i) Polygons(list(Polygon(cbind(polyx[i:(i + 99)], polyy[i:(i + 99)]))), ID = paste('p', i, sep = '')))
-polys <- SpatialPolygons(polylist, 
+radius <- seq(0, 0.04, 0.0005)
+linex <- unlist(lapply(seq(1, length(radius)), function(x) origin[1] + radius[x] * cos(angles)))
+liney <- unlist(lapply(seq(1, length(radius)), function(x) origin[2] + radius[x] * sin(angles)))
+linelist <- lapply(seq(1, length(polyx), 100), 
+                   FUN = function(i) Lines(list(Line(cbind(linex[i:(i + 99)], liney[i:(i + 99)]))), ID = paste('p', i, sep = '')))
+lines <- SpatialLines(linelist, 
                       proj4string = CRS(proj4string(amp_img)))
-# crop lines to raster
-#lines <- crop(lines, extent(xmin(amp_img), xmax(amp_img), ymin, ymax(amp_img)))
+
+# plot and get amplitude sums within each radius
 plot(amp_img)
-plot(polys, add = TRUE)
-# summarize all amplitude points that overlap lines
+plot(lines, add = TRUE)
 Br <- list()
-for (i in 1:length(polys)) {
-  # START HERE AFTER EMAILS
-  temp <- crop(polys[i], extent(xmin(amp_img), xmax(amp_img), ymin, ymax(amp_img)))
+Br[1] <- 0
+for (i in 2:length(polys)) {
+  templine <- crop(lines[i], extent(xmin(amp_img), xmax(amp_img), ymin, ymax(amp_img)))
+  Br[i] <- extract(amp_img, templine, fun = sum)
+}
+plot(unlist(Br) ~ (1 / radius), type = 'l')
+Srw <- radius[which(unlist(Br) == max(unlist(Br), na.rm = TRUE))]
+Srwi <- mean(unlist(Br), na.rm = TRUE) / max(unlist(Br), na.rm = TRUE)
+
+
+### TESTING FROM HERE DOWN ###
+### fractal dimension
+# calculate rays extending from origin
+M <- 180
+j <- seq(0, (M - 1))
+alpha <- (pi * j) / M # angles
+px <- c(0, 0.04) # line length
+linex <- unlist(lapply(seq(1, length(alpha)), function(x) origin[1] + px * cos(alpha[x])))
+liney <- unlist(lapply(seq(1, length(alpha)), function(x) origin[2] + px * sin(alpha[x])))
+linelist <- lapply(seq(1, length(linex), 2), 
+                   FUN = function(i) Lines(Line(cbind(linex[i:(i + 1)], liney[i:(i + 1)])), ID = paste('l', i, sep = '')))
+lines <- SpatialLines(linelist, 
+                      proj4string = CRS(proj4string(amp_img)))
+
+# plot and calculate amplitude sums along rays
+plot(amp_img)
+lines(lines)
+Aalpha <- list()
+for (i in 1:length(lines)) {
   Aalpha[i] <- extract(amp_img, lines[i], fun = sum)
 }
-
-draw.radial.line(start = 0, end = 4, center = origin, angle = alpha[170])
-draw.circle(x = origin[1], y = origin[2], radius = seq(0, 0.04, 0.001))
-
-
 for (i in 1:M) {
   angle <- alpha[i]
   # calculate lines
