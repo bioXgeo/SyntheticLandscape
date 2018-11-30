@@ -23,8 +23,7 @@
 
 # changes needed ----------------------------------------------------------
 
-# should really create a function to create various shifts in x and y directions,
-# since this is used a lot in several of the other functions
+
 
 # load packages -----------------------------------------------------------
 
@@ -34,6 +33,7 @@ library(spatialEco)
 library(dplyr)
 library(plotly)
 library(gstat)
+library(phonTools)
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/zshift.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/fftshift.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/simpsons.R')
@@ -242,6 +242,7 @@ ft_shift <- fftshift(ft)
 # amplitude and phase spectrum
 amplitude <- sqrt((Re(ft_shift) ^ 2) + (Im(ft_shift) ^ 2))
 phase <- atan(Im(ft_shift) / Re(ft_shift))
+power <- (Re(ft_shift) ^ 2) + (Im(ft_shift) ^ 2)
 
 # take amplitude image, cut in half (y direction)
 amp_img <- newrast2
@@ -286,7 +287,7 @@ angles <- seq(0, 2 * pi - angle.inc, by = angle.inc)
 radius <- seq(0, 0.04, 0.0005)
 linex <- unlist(lapply(seq(1, length(radius)), function(x) origin[1] + radius[x] * cos(angles)))
 liney <- unlist(lapply(seq(1, length(radius)), function(x) origin[2] + radius[x] * sin(angles)))
-linelist <- lapply(seq(1, length(polyx), 100), 
+linelist <- lapply(seq(1, length(linex), 100), 
                    FUN = function(i) Lines(list(Line(cbind(linex[i:(i + 99)], liney[i:(i + 99)]))), ID = paste('p', i, sep = '')))
 lines <- SpatialLines(linelist, 
                       proj4string = CRS(proj4string(amp_img)))
@@ -296,7 +297,7 @@ plot(amp_img)
 plot(lines, add = TRUE)
 Br <- list()
 Br[1] <- 0
-for (i in 2:length(polys)) {
+for (i in 2:length(lines)) {
   templine <- crop(lines[i], extent(xmin(amp_img), xmax(amp_img), ymin, ymax(amp_img)))
   Br[i] <- extract(amp_img, templine, fun = sum)
 }
@@ -304,39 +305,14 @@ plot(unlist(Br) ~ (1 / radius), type = 'l')
 Srw <- radius[which(unlist(Br) == max(unlist(Br), na.rm = TRUE))]
 Srwi <- mean(unlist(Br), na.rm = TRUE) / max(unlist(Br), na.rm = TRUE)
 
-
 ### TESTING FROM HERE DOWN ###
 ### fractal dimension
-# calculate rays extending from origin
-M <- 180
-j <- seq(0, (M - 1))
-alpha <- (pi * j) / M # angles
-px <- c(0, 0.04) # line length
-linex <- unlist(lapply(seq(1, length(alpha)), function(x) origin[1] + px * cos(alpha[x])))
-liney <- unlist(lapply(seq(1, length(alpha)), function(x) origin[2] + px * sin(alpha[x])))
-linelist <- lapply(seq(1, length(linex), 2), 
-                   FUN = function(i) Lines(Line(cbind(linex[i:(i + 1)], liney[i:(i + 1)])), ID = paste('l', i, sep = '')))
-lines <- SpatialLines(linelist, 
-                      proj4string = CRS(proj4string(amp_img)))
+# take amplitude image, cut in half (y direction)
+power_img <- newrast2
+power_img <- setValues(power_img, power)
+plot(power_img)
 
-# plot and calculate amplitude sums along rays
-plot(amp_img)
-lines(lines)
-Aalpha <- list()
-for (i in 1:length(lines)) {
-  Aalpha[i] <- extract(amp_img, lines[i], fun = sum)
-}
-for (i in 1:M) {
-  angle <- alpha[i]
-  # calculate lines
-}
-
-# plot amplitude vs. frequency
-plot(y = amplitude, x = 1 / seq(1, length(amplitude)))
-
-M <- length(ft) / 2 # sample < N where N = # pts
-j <- seq(0, (M - 1))
-alpha <- (pi * j) / M
+test <- fd.estim.transect.var(matrix(power, ncol = ncol(newrast2), byrow = TRUE), p.index = 1)
 
 # get log-log frequency-amplitude
 loglog_data <- data.frame(amp = log(matrix(amplitude, ncol = 1)), freq = log(seq(1, length(amplitude))))
