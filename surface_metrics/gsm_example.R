@@ -33,6 +33,7 @@ library(tibble)
 library(spatialEco)
 library(dplyr)
 library(plotly)
+library(gstat)
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/zshift.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/fftshift.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/simpsons.R')
@@ -241,19 +242,121 @@ ft_shift <- fftshift(ft)
 # amplitude and phase spectrum
 amplitude <- sqrt((Re(ft_shift) ^ 2) + (Im(ft_shift) ^ 2))
 phase <- atan(Im(ft_shift) / Re(ft_shift))
-power <- (Im(ft_shift) ^ 2) + (Im(ft_shift) ^ 2)
+power <- (Re(ft_shift) ^ 2) + (Im(ft_shift) ^ 2)
 
-amplitude <- (sqrt(Re(ft) ^ 2) + (Im(ft) ^ 2))
+# shift to 180 to 0 instead of -90 to 90
+newphase <- phase + abs(min(phase))
+
+# dominant texture direction = angle of dominating texture in image calculated from
+# fourier spectrum
+Std <- rad2deg(newphase[amplitude == max(amplitude)])
+
+# texture direction index = relative dominance of Std over other directions of texture, 
+# defined as avg. amplitude sum over all directions divided by amplitude sum of 
+# dominating direction
+Stdi <- mean(amplitude) / max(amplitude)
+
+polar.plot(amplitude, rad2deg(newphase))
+
+# dominant radial wavelength = dominating wavelength found in radial fourier spectrum
+# accumulated amplitude for each radius
+acc_amp <- list()
+for (i in seq(1, max(amplitude))) {
+  temp <- sum(amplitude[amplitude < i]) / 2
+  acc_amp[i] <- temp
+}
+# we will say deltax = 1 for consistency?
+Srw <- (1 * (length(phase) - 1)) / min(which(unlist(acc_amp) == max(unlist(acc_amp))))
+
+
+### TESTING - HERE DOWN
+
+# take amplitude image, cut in half
+amp_img <- newrast2
+amp_img <- setValues(test, amplitude)
+plot(amp_img)
+# crop in y-direction
+ymin <- ymax(amp_img) - ((ymax(amp_img) - ymin(amp_img)) / 2)
+amp_img <- crop(amp_img, c(xmin(amp_img), xmax(amp_img), ymin, ymax(amp_img)))
+origin <- c(mean(coordinates(amp_img)[,1]), ymin(amp_img))
+# number sample rays
+M <- 180
+j <- seq(0, (M - 1))
+alpha <- (pi * j) / M #angles
+# calculate spatial lines
+px <- c(0, 0.04)
+linex <- unlist(lapply(seq(1, length(alpha)), function(x) origin[1] + px * cos(alpha[x])))
+liney <- unlist(lapply(seq(1, length(alpha)), function(x) origin[2] + px * sin(alpha[x])))
+linelist <- lapply(seq(1, length(linex), 2), 
+                   FUN = function(i) Lines(Line(cbind(linex[i:(i + 1)], liney[i:(i + 1)])), ID = paste('l', i, sep = '')))
+lines <- SpatialLines(linelist, 
+                      proj4string = CRS(proj4string(amp_img)))
+# crop lines to raster
+#lines <- crop(lines, extent(xmin(amp_img), xmax(amp_img), ymin, ymax(amp_img)))
+plot(amp_img)
+lines(lines)
+# summarize all amplitude points that overlap lines
+Aalpha <- list()
+for (i in 1:length(lines)) {
+  temp <- crop(lines[i], extent(xmin(amp_img), xmax(amp_img), ymin, ymax(amp_img)))
+  Aalpha[i] <- extract(amp_img, lines[i], fun = sum)
+}
+
+std <- rad2deg(alpha[which(unlist(Aalpha) == max(unlist(Aalpha), na.rm = TRUE))])
+stdi <- mean(unlist(Aalpha), na.rm = TRUE) / max(unlist(Aalpha), na.rm = TRUE)
+# why 52???
+
+
+nv <- 100
+angle.inc <- 2 * pi / nv
+angles <- seq(0, 2 * pi - angle.inc, by = angle.inc)
+radius <- seq(0, 0.04, 0.001)
+for (circle in 1:length(radius)) {
+  xv <- cos(angles) * radius[circle] + origin[1]
+  yv <- sin(angles) * radius[circle] + origin[2]
+}
+polyx <- unlist(lapply(seq(1, length(radius)), function(x) origin[1] + radius[x] * cos(angles)))
+polyy <- unlist(lapply(seq(1, length(radius)), function(x) origin[2] + radius[x] * sin(angles)))
+polylist <- lapply(seq(1, length(polyx), 100), 
+                   FUN = function(i) Polygons(list(Polygon(cbind(polyx[i:(i + 99)], polyy[i:(i + 99)]))), ID = paste('p', i, sep = '')))
+polys <- SpatialPolygons(polylist, 
+                      proj4string = CRS(proj4string(amp_img)))
+# crop lines to raster
+#lines <- crop(lines, extent(xmin(amp_img), xmax(amp_img), ymin, ymax(amp_img)))
+plot(amp_img)
+plot(polys, add = TRUE)
+# summarize all amplitude points that overlap lines
+Br <- list()
+for (i in 1:length(polys)) {
+  # START HERE AFTER EMAILS
+  temp <- crop(polys[i], extent(xmin(amp_img), xmax(amp_img), ymin, ymax(amp_img)))
+  Aalpha[i] <- extract(amp_img, lines[i], fun = sum)
+}
+
+draw.radial.line(start = 0, end = 4, center = origin, angle = alpha[170])
+draw.circle(x = origin[1], y = origin[2], radius = seq(0, 0.04, 0.001))
+
+
+for (i in 1:M) {
+  angle <- alpha[i]
+  # calculate lines
+}
+
+# plot amplitude vs. frequency
+plot(y = amplitude, x = 1 / seq(1, length(amplitude)))
+
+M <- length(ft) / 2 # sample < N where N = # pts
+j <- seq(0, (M - 1))
+alpha <- (pi * j) / M
 
 # get log-log frequency-amplitude
 loglog_data <- data.frame(amp = log(matrix(amplitude, ncol = 1)), freq = log(seq(1, length(amplitude))))
 loglog <- lm(amp ~ freq, data = loglog_data)
-
-### TESTING - HERE DOWN
+plot(loglog_data$amp ~ 1/loglog_data$freq)
 
 # plot amplit
 test <- newrast2
-test <- setValues(test, log(amplitude)) # plot amplitude
+test <- setValues(test, amplitude) # plot amplitude
 test2 <- setValues(test, phase)
 # Each pixel in the Fourier transform has a coordinate (h,k) representing 
 # the contribution of the sine wave with x-frequency h, and y-frequency k 
@@ -269,13 +372,56 @@ summary(matrix(rad2deg(phase), ncol = 1)) # symmmetric 90 to 90, so yes
 
 # dominant texture direction = angle of dominating texture in image calculated from
 # fourier spectrum
-Std <- rad2deg(phase[which(amplitude == max(amplitude))])
+polar.plot(amplitude, polar.pos = rad2deg(phase))
+Std <- rad2deg(phase[which(amplitude == max(amplitude))]) - 90
 
 # texture direction index = relative dominance of Std over other directions of texture, 
 # defined as avg. amplitude sum over all directions divided by amplitude sum of 
 # dominating direction
-Stdi <- mean(amplitude) / sum(amplitude[rad2deg(phase) == Std])
+Stdi <- mean(amplitude) / max(amplitude)
+
+# dominant radial wavelength = dominating wavelength found in radial fourier spectrum
+# accumulated amplitude for each radius
+acc_amp <- list()
+for (i in seq(1, max(amplitude))) {
+  temp <- sum(amplitude[amplitude < i]) / 2
+  acc_amp[i] <- temp
+}
+# we will say deltax = 1 for consistency?
+Srw <- (1 * (length(phase) - 1)) / min(which(unlist(acc_amp) == max(unlist(acc_amp))))
+
+# radial wavelength index = relative dominance of Srw over other radial distances,
+# defined as avg. amplitude sum over all radial distances divided by amplitude sum of 
+# dominating wavelength
+Srwi <- (1 / (length(phase)) / 2) * sum(unlist(acc_amp) / max(unlist(acc_amp)))
 
 # fractal dimension = calculated for different angles of angular spectrum by analyzing 
 # fourier amplitude spectrum
 Sfd <- 2 - loglog$coefficients[2]
+
+# srw, srwi, shw, sfd, std, stdi
+
+# spatial autocorrelation metrics -----------------------------------------
+# surface lay = direction with highest correlation
+
+# determine anisotropic autocorrelation structure
+# look at isotropic first
+z_spat <- data.frame(z = z, x = x, y = y)
+z_spat <- z_spat[sample(nrow(z_spat), round(0.4 * nrow(z_spat))), ]
+coordinates(z_spat) <- ~x+y
+basic_var <- variogram(z ~ x + y, data = z_spat, width = res(newrast2)[1] * 3, cutoff = 0.05)
+plot(basic_var, cex = 1.3, pch = 16, col = 1, xlab = 'Distance', ylab = 'Semivariance')
+# then anisotropic
+az <- seq(10, 180, 10)
+anis_var <- variogram(z ~ x + y, data = z_spat, width = res(newrast2)[1] * 3, cutoff = 0.05,
+                      alpha = az, tol.hor = 15)
+plot(anis_var, cex = 1.1, pch = 16, col = 1, xlab = 'Distance', ylab = 'Semivariance')
+
+# rate at which autocorrelation decays to 20, 37% for each direction
+
+# distance of decay to 20, 37% autocorrelation in the direction with fastest decays
+# scl20, scl37
+
+# isolate fastest and slowest rates of decay to 20, 37% autocorrelation
+# str20, str37
+# ratios of fastest/slowest rates
