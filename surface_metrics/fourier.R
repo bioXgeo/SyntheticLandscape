@@ -1,17 +1,22 @@
 ### fourier functions
-sfd <- function(fftshift, origin) {
+sfd <- function(fftshift, origin, x, y) {
+  # this has been checked against the matlab version and produces the same results
+  # now need to confirm that it is the correct value...
+  
   # from matlab fdsurfft function
   num_dir <- 24 # number of directions that the frequency space is uniformally divided
   num_rad <- 30 # number of points that the radius is uniformally divided
 
   M <- nrow(fftshift)
   N <- ncol(fftshift)
-  xctr <- origin[1] # should actually be index of x that = origin x
-  yctr <- origin[2] # same as xctr
+  xdist <- matrix(x, nrow = M, ncol = N, byrow = TRUE)[1, ] - origin[1]
+  ydist <- matrix(y, nrow = M, ncol = N, byrow = TRUE)[, 1] - origin[2]
+  xctr <- which(xdist == min(abs(xdist))) # should actually be index of x that = origin x
+  yctr <- which(ydist == min(abs(ydist))) # same as xctr
   fim <- fftshift
   
   # calculate power spectrum
-  mag <- log(fim * fim + 10 ^ (-6)) 
+  mag <- Re(log(fim * fim + 10 ^ (-6)))
   sumBrite <- zeros(num_dir, num_rad) # accumulation magnitude for each direction and radius
   nCount <- zeros(num_dir, num_rad) # number of magnitude
   radius <- zeros(2 * num_rad, 1) # accumulation magnitude for all directions 
@@ -42,22 +47,22 @@ sfd <- function(fftshift, origin) {
   }
   
   maxphase <- max(phase)
-  plot(phase / maxphase)
+  plot(phase / maxphase, type = 'l')
   
-  # accumulation of magnitude for each dirction and radius
-  rmax <- log(min(M, N) / 2) # maximum radius
+  # accumulation of magnitude for each direction and radius
+  rmax <- log(min(M, N) / 2) # maximum radius (log scale)
   for (j in 1:M) {
-    if (near(j, yctr)) {
+    if (j != yctr) {
       yval <- yctr - j
       y2 <- yval * yval
     for (i in 1:N) {
-      if (near(i, xctr)) {
+      if (i != xctr) {
         xval <- i - xctr
         rho <- log(sqrt(y2 + xval * xval))
         if (rho > 0 & rho <= rmax) {
-          mval <- mag(j,i);
-          temp <- yval /xval;
-          theta <- atan(temp);
+          mval <- mag[j, i]
+          temp <- yval /xval
+          theta <- atan(temp)
           if (xval < 0) {
             theta <- theta + pi
           }
@@ -87,7 +92,7 @@ sfd <- function(fftshift, origin) {
     }
     }
   }
-  
+
   # linear regression
   slope <- as.numeric()
   intercept <- as.numeric()
@@ -119,30 +124,25 @@ sfd <- function(fftshift, origin) {
   for (k in 6:(2 * num_rad)) {
     if (radCount[k] > 0) {
       sumn <- sumn + 1
-      yval[sumn] <- radius(k) / radCount(k)
+      yval[sumn] <- radius[k] / radCount[k]
       tempr[sumn] <- (k - 1) * rmax / (2 * num_rad) # might be c(k, -1)
     }
   }
-  p <- lm(yval ~ poly(tempr, 1, raw = TRUE))
+  model_data <- data.frame(yval = yval, tempr = tempr)
+  p <- lm(yval ~ tempr, data = model_data)
+  averslope <- p$coefficients[2]
+  averIC <- p$coefficients[1]
   
-  p <- polyfit(tempr, yval, 1)
-  averslope <- p[1]
-  averIC <- p(2)
-  fitln <- polyval(p, tempr)
-  figure; plot(tempr,yval,tempr,fitln,'r-');
-  title('Log Log plot of Magn. vs Freq.');
-  ylabel('Log Magnitude');
-  xlabel('Log Frequency');
+  fitln <- predict(p, newdata = model_data)
+  plot(tempr, yval, type = 'l')
+  lines(tempr, fitln, col = 'blue')
   slope[num_dir + 1] <- slope[1]
   intercept[num_dir + 1] <- intercept[1]
   
   # draw rose plot of slope and intercept
   ang <- seq(1, (num_dir + 1))
-  figure;
-  polar(pi/NUM_DIR + (ang -1) * 2* pi / NUM_DIR, intercept(ang), 'r-');  
-  title('Rose plot of intercept');
-  figure
-  polar(pi/NUM_DIR + (ang - 1)* 2 * pi / NUM_DIR, abs(slope(ang)), '-')          
-  title('Rose plot of slope')
-  disp(['Elapsed time: ' num2str(toc)])
+  polar.plot(intercept[ang], rad2deg(pi / num_dir + (ang - 1) * 2 * pi / num_dir))
+  polar.plot(abs(slope[ang]), rad2deg(pi / num_dir + (ang - 1) * 2 * pi / num_dir))
+
+  return(abs(averslope)[[1]])
 }

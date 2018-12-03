@@ -1,7 +1,7 @@
 ### Surface metric calculations for synthetic geo paper
 
 # Written by ACS 3 Nov 2018
-# Last edited by ACS 30 Nov 2018
+# Last edited by ACS 03 Dec 2018
 
 ### helpful resources
 # https://www.keyence.com/ss/products/microscope/roughness/surface/parameters.jsp
@@ -41,6 +41,7 @@ source('/home/annie/Documents/SyntheticLandscape/surface_metrics/bestfit.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/localsurface.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/sdq.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/surfacearea.R')
+source('/home/annie/Documents/SyntheticLandscape/surface_metrics/fourier.R')
 
 # functions ---------------------------------------------------------------
 
@@ -305,66 +306,11 @@ plot(unlist(Br) ~ (1 / radius), type = 'l')
 Srw <- radius[which(unlist(Br) == max(unlist(Br), na.rm = TRUE))]
 Srwi <- mean(unlist(Br), na.rm = TRUE) / max(unlist(Br), na.rm = TRUE)
 
-### TESTING FROM HERE DOWN ###
-### fractal dimension
-# take amplitude image, cut in half (y direction)
-power_img <- newrast2
-power_img <- setValues(power_img, power)
-plot(power_img)
-
-test <- fd.estim.transect.var(matrix(power, ncol = ncol(newrast2), byrow = TRUE), p.index = 1)
-
-# get log-log frequency-amplitude
-loglog_data <- data.frame(amp = log(matrix(amplitude, ncol = 1)), freq = log(seq(1, length(amplitude))))
-loglog <- lm(amp ~ freq, data = loglog_data)
-plot(loglog_data$amp ~ 1/loglog_data$freq)
-
-# plot amplit
-test <- newrast2
-test <- setValues(test, amplitude) # plot amplitude
-test2 <- setValues(test, phase)
-# Each pixel in the Fourier transform has a coordinate (h,k) representing 
-# the contribution of the sine wave with x-frequency h, and y-frequency k 
-# in the Fourier transform.
-
-# view amplitude
-p <- plot_ly(showscale = FALSE) %>%
-  add_surface(z = ~log(amplitude))
-p
-
-# check if all angles exist...
-summary(matrix(rad2deg(phase), ncol = 1)) # symmmetric 90 to 90, so yes
-
-# dominant texture direction = angle of dominating texture in image calculated from
-# fourier spectrum
-polar.plot(amplitude, polar.pos = rad2deg(phase))
-Std <- rad2deg(phase[which(amplitude == max(amplitude))]) - 90
-
-# texture direction index = relative dominance of Std over other directions of texture, 
-# defined as avg. amplitude sum over all directions divided by amplitude sum of 
-# dominating direction
-Stdi <- mean(amplitude) / max(amplitude)
-
-# dominant radial wavelength = dominating wavelength found in radial fourier spectrum
-# accumulated amplitude for each radius
-acc_amp <- list()
-for (i in seq(1, max(amplitude))) {
-  temp <- sum(amplitude[amplitude < i]) / 2
-  acc_amp[i] <- temp
-}
-# we will say deltax = 1 for consistency?
-Srw <- (1 * (length(phase) - 1)) / min(which(unlist(acc_amp) == max(unlist(acc_amp))))
-
-# radial wavelength index = relative dominance of Srw over other radial distances,
-# defined as avg. amplitude sum over all radial distances divided by amplitude sum of 
-# dominating wavelength
-Srwi <- (1 / (length(phase)) / 2) * sum(unlist(acc_amp) / max(unlist(acc_amp)))
-
-# fractal dimension = calculated for different angles of angular spectrum by analyzing 
+# fractal dimension = calculated for different angles of angular spectrum by analyzing
 # fourier amplitude spectrum
-Sfd <- 2 - loglog$coefficients[2]
+Sfd <- sfd(ft_shift, origin, x, y)
 
-# srw, srwi, shw, sfd, std, stdi
+# still need shw, functionize srw and std
 
 # spatial autocorrelation metrics -----------------------------------------
 # surface lay = direction with highest correlation
