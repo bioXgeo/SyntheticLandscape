@@ -35,6 +35,8 @@ library(plotly)
 library(gstat)
 library(phonTools)
 library(plotrix)
+library(spatial)
+library(MASS)
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/zshift.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/fftshift.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/simpsons.R')
@@ -67,6 +69,10 @@ vals <- getValues(newrast)
 xscale <- 30
 yscale <- 30
 
+x <- coordinates(newrast2)[, 1]
+y <- coordinates(newrast2)[, 2]
+z <- vals
+
 # calculate best-fit plane and variables ------------------------------------
 
 # everything is relative to the best-fitting plane, so calculate the formula
@@ -81,6 +87,15 @@ b <- as.matrix(vals, ncol = 1)
 fit <- (solve((t(A) %*% A)) %*% t(A)) %*% b
 errors <- b - (A %*% fit)
 
+### New - 2nd order polynomial least squares fit
+surfmod <- surf.ls(np = 2, x, y, z)
+surf <- trmat(surfmod, min(x), max(x), min(y), max(y), 371)
+eqscplot(surf, type = 'n')
+contour(surf, add = TRUE)
+
+surfvals <- matrix(predict(surfmod, x, y), nrow = nrow(newrast), ncol = ncol(newrast), byrow = TRUE)
+errors <- matrix(z, nrow = nrow(newrast), ncol = ncol(newrast), byrow = TRUE) - surfvals
+
 # plot new raster
 newrast2 <- newrast
 newrast2 <- setValues(newrast2, errors)
@@ -91,8 +106,6 @@ N <- length(errors)
 s <- sd(errors)
 z <- errors
 zbar <- mean(errors)
-x <- coordinates(newrast2)[, 1]
-y <- coordinates(newrast2)[, 2]
 
 # calculate cdf and other necessary components ----------------------------
 
@@ -260,23 +273,43 @@ Shw <- srwvals[[3]]
 
 # fractal dimension = calculated for different angles of angular spectrum by analyzing
 # fourier amplitude spectrum
-Sfd <- sfd(z, rast, x, y)
+Sfd <- sfd(z, newrast2, x, y)
 
 # spatial autocorrelation metrics -----------------------------------------
 # surface lay = direction with highest correlation
+#  the autocorrelation function can then be estimated through 
+# an inverse FFT of the power spectral density
 
-# determine anisotropic autocorrelation structure
-# look at isotropic first
-z_spat <- data.frame(z = z, x = x, y = y)
-z_spat <- z_spat[sample(nrow(z_spat), round(0.4 * nrow(z_spat))), ]
-coordinates(z_spat) <- ~x+y
-basic_var <- variogram(z ~ x + y, data = z_spat, width = res(newrast2)[1] * 3, cutoff = 0.05)
-plot(basic_var, cex = 1.3, pch = 16, col = 1, xlab = 'Distance', ylab = 'Semivariance')
-# then anisotropic
-az <- seq(10, 180, 10)
-anis_var <- variogram(z ~ x + y, data = z_spat, width = res(newrast2)[1] * 3, cutoff = 0.05,
-                      alpha = az, tol.hor = 15)
-plot(anis_var, cex = 1.1, pch = 16, col = 1, xlab = 'Distance', ylab = 'Semivariance')
+# from https://link.springer.com/content/pdf/10.1007%2F978-1-4757-3369-3_5.pdf
+
+# get raster dimensions
+M <- ncol(newrast2)
+N <- nrow(newrast2)
+
+# create windows to prevent leakage
+wc <- hanning(M)
+wr <- hanning(N)
+
+w <- meshgrid(wr, wc)
+w <- w[[1]] * w[[2]]
+
+zmatw <- zmat * w
+
+ft <- fft(zmatw)
+
+ps <- (abs(ft) ^ 2) / (M * N)
+
+af <- Re(fft(ps, inverse = TRUE) / (M * N))
+
+af_shift <- fftshift(af) # this is symmetric!
+
+# normalize to max 1 using signal variance
+af_norm <- af_shift / max(as.numeric(af_shift), na.rm = TRUE)
+af_img <- setValues(newrast2, af_norm)
+plot(af_img)
+# now calculate autocorrelation vector for each direction (upper half of image)
+# get minimum length to 20% autocorrelation and 1/e autocorrelation
+# than ratio of fastest to slowest decay to 20% and 1/e
 
 # rate at which autocorrelation decays to 20, 37% for each direction
 
