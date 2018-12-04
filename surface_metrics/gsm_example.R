@@ -1,7 +1,7 @@
 ### Surface metric calculations for synthetic geo paper
 
 # Written by ACS 3 Nov 2018
-# Last edited by ACS 03 Dec 2018
+# Last edited by ACS 04 Dec 2018
 
 ### helpful resources
 # https://www.keyence.com/ss/products/microscope/roughness/surface/parameters.jsp
@@ -34,6 +34,7 @@ library(dplyr)
 library(plotly)
 library(gstat)
 library(phonTools)
+library(plotrix)
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/zshift.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/fftshift.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/simpsons.R')
@@ -234,83 +235,32 @@ Ssc <- ssc(newrast2, peaks)
 
 # fourier variables -------------------------------------------------------
 
-# get fourier transform
-zmat <- matrix(z, ncol = M, nrow = N, byrow = TRUE)
-# complex spectrum from fast fourier transform
-ft <- fft(zmat)
-ft_shift <- fftshift(ft)
+# dominant texture direction = angle of dominating texture in image calculated from
+# Fourier spectrum
+stdvals <- std(z, newrast2, plot = TRUE)
+Std <- stdvals[[1]]
 
-# amplitude and phase spectrum
-amplitude <- sqrt((Re(ft_shift) ^ 2) + (Im(ft_shift) ^ 2))
-phase <- atan(Im(ft_shift) / Re(ft_shift))
-power <- (Re(ft_shift) ^ 2) + (Im(ft_shift) ^ 2)
+# texture direction index = relative dominance of Std over other directions of texture,
+# defined as avg. amplitude sum over all directions divided by amplitude sum of dominating
+# direction
+Stdi <- stdvals[[2]]
 
-# take amplitude image, cut in half (y direction)
-amp_img <- newrast2
-amp_img <- setValues(amp_img, amplitude)
-plot(amp_img)
-ymin <- ymax(amp_img) - ((ymax(amp_img) - ymin(amp_img)) / 2)
-amp_img <- crop(amp_img, c(xmin(amp_img), xmax(amp_img), ymin, ymax(amp_img)))
+# dominant radial wavelength = dominating wavelength found in radial Fourier spectrum
+srwvals <- srw(z, newrast2, plot = TRUE)
+Srw <- srwvals[[1]]
 
-# get origin of image (actually bottom center)
-origin <- c(mean(coordinates(amp_img)[,1]), ymin(amp_img))
+# radial wavelength index = relative dominance of Srw over other radial distances, defined
+# as avg. amplitude sum over all radial distances divided by amplitude sum of dominating
+# wavelength
+Srwi <- srwvals[[2]]
 
-### line and circle calculations are taken from the plotrix functions draw.radial.line
-### and draw.circle
-# calculate rays extending from origin
-M <- 180
-j <- seq(0, (M - 1))
-alpha <- (pi * j) / M # angles
-px <- c(0, 0.04) # line length
-linex <- unlist(lapply(seq(1, length(alpha)), function(x) origin[1] + px * cos(alpha[x])))
-liney <- unlist(lapply(seq(1, length(alpha)), function(x) origin[2] + px * sin(alpha[x])))
-linelist <- lapply(seq(1, length(linex), 2), 
-                   FUN = function(i) Lines(Line(cbind(linex[i:(i + 1)], liney[i:(i + 1)])), ID = paste('l', i, sep = '')))
-lines <- SpatialLines(linelist, 
-                      proj4string = CRS(proj4string(amp_img)))
-
-# plot and calculate amplitude sums along rays
-plot(amp_img)
-lines(lines)
-Aalpha <- list()
-for (i in 1:length(lines)) {
-  Aalpha[i] <- extract(amp_img, lines[i], fun = sum)
-}
-
-std <- rad2deg(alpha[which(unlist(Aalpha) == max(unlist(Aalpha), na.rm = TRUE))])
-stdi <- mean(unlist(Aalpha), na.rm = TRUE) / max(unlist(Aalpha), na.rm = TRUE)
-# why 52?
-
-# calculate half circles extending from origin
-nv <- 100
-angle.inc <- 2 * pi / nv
-angles <- seq(0, 2 * pi - angle.inc, by = angle.inc)
-radius <- seq(0, 0.04, 0.0005)
-linex <- unlist(lapply(seq(1, length(radius)), function(x) origin[1] + radius[x] * cos(angles)))
-liney <- unlist(lapply(seq(1, length(radius)), function(x) origin[2] + radius[x] * sin(angles)))
-linelist <- lapply(seq(1, length(linex), 100), 
-                   FUN = function(i) Lines(list(Line(cbind(linex[i:(i + 99)], liney[i:(i + 99)]))), ID = paste('p', i, sep = '')))
-lines <- SpatialLines(linelist, 
-                      proj4string = CRS(proj4string(amp_img)))
-
-# plot and get amplitude sums within each radius
-plot(amp_img)
-plot(lines, add = TRUE)
-Br <- list()
-Br[1] <- 0
-for (i in 2:length(lines)) {
-  templine <- crop(lines[i], extent(xmin(amp_img), xmax(amp_img), ymin, ymax(amp_img)))
-  Br[i] <- extract(amp_img, templine, fun = sum)
-}
-plot(unlist(Br) ~ (1 / radius), type = 'l')
-Srw <- radius[which(unlist(Br) == max(unlist(Br), na.rm = TRUE))]
-Srwi <- mean(unlist(Br), na.rm = TRUE) / max(unlist(Br), na.rm = TRUE)
+# mean half wavelength = based on the integrated radial spectrum
+# find radius where sum of values <= r = 1/2 sum with r = max radius
+Shw <- srwvals[[3]]
 
 # fractal dimension = calculated for different angles of angular spectrum by analyzing
 # fourier amplitude spectrum
-Sfd <- sfd(ft_shift, origin, x, y)
-
-# still need shw, functionize srw and std
+Sfd <- sfd(z, rast, x, y)
 
 # spatial autocorrelation metrics -----------------------------------------
 # surface lay = direction with highest correlation
