@@ -16,7 +16,8 @@ std <- function(z, rast, plot = TRUE) {
   
   # take amplitude image, cut in half (y direction)
   amp_img <- setValues(rast, amplitude)
-  ymin <- ymax(amp_img) - ((ymax(amp_img) - ymin(amp_img)) / 2)
+  half_dist <- (ymax(amp_img) - ymin(amp_img)) / 2
+  ymin <- ymax(amp_img) - half_dist
   amp_img <- crop(amp_img, c(xmin(amp_img), xmax(amp_img), ymin, ymax(amp_img)))
   
   # get origin of image (actually bottom center)
@@ -27,7 +28,7 @@ std <- function(z, rast, plot = TRUE) {
   M <- 180
   j <- seq(0, (M - 1))
   alpha <- (pi * j) / M # angles
-  px <- c(0, 0.04) # line length
+  px <- c(0, half_dist) # line length
   linex <- unlist(lapply(seq(1, length(alpha)), function(x) origin[1] + px * cos(alpha[x])))
   liney <- unlist(lapply(seq(1, length(alpha)), function(x) origin[2] + px * sin(alpha[x])))
   linelist <- lapply(seq(1, length(linex), 2), 
@@ -69,7 +70,8 @@ srw <- function(z, rast, plot = TRUE) {
   
   # take amplitude image, cut in half (y direction)
   amp_img <- setValues(rast, amplitude)
-  ymin <- ymax(amp_img) - ((ymax(amp_img) - ymin(amp_img)) / 2)
+  half_dist <- (ymax(amp_img) - ymin(amp_img)) / 2
+  ymin <- ymax(amp_img) - half_dist
   amp_img <- crop(amp_img, c(xmin(amp_img), xmax(amp_img), ymin, ymax(amp_img)))
   
   # get origin of image (actually bottom center)
@@ -79,7 +81,7 @@ srw <- function(z, rast, plot = TRUE) {
   nv <- 100
   angle.inc <- 2 * pi / nv
   angles <- seq(0, 2 * pi - angle.inc, by = angle.inc)
-  radius <- seq(0, 0.04, 0.0005)
+  radius <- seq(0, half_dist, half_dist / 80)
   linex <- unlist(lapply(seq(1, length(radius)), function(x) origin[1] + radius[x] * cos(angles)))
   liney <- unlist(lapply(seq(1, length(radius)), function(x) origin[2] + radius[x] * sin(angles)))
   linelist <- lapply(seq(1, length(linex), 100), 
@@ -133,7 +135,8 @@ sfd <- function(z, rast, x, y) {
   
   # take amplitude image, cut in half (y direction)
   amp_img <- setValues(rast, amplitude)
-  ymin <- ymax(amp_img) - ((ymax(amp_img) - ymin(amp_img)) / 2)
+  half_dist <- (ymax(amp_img) - ymin(amp_img)) / 2
+  ymin <- ymax(amp_img) - half_dist
   amp_img <- crop(amp_img, c(xmin(amp_img), xmax(amp_img), ymin, ymax(amp_img)))
   
   # get origin of image (actually bottom center)

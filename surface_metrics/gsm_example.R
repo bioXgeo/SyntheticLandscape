@@ -1,7 +1,7 @@
 ### Surface metric calculations for synthetic geo paper
 
 # Written by ACS 3 Nov 2018
-# Last edited by ACS 04 Dec 2018
+# Last edited by ACS 07 Dec 2018
 
 ### helpful resources
 # https://www.keyence.com/ss/products/microscope/roughness/surface/parameters.jsp
@@ -11,25 +11,16 @@
 # also see below for other abbott-firestone curve definition
 # ftp://ftp.astmtmc.cmu.edu/docs/diesel/mack/minutes/2013/Mack.2013-02-07.Meeting/21763%20pdf.pdf
 
-# probably need to flip min/max values to get correct curve -- done 11/12/18
-
-# see https://trac.osgeo.org/grass/browser/grass/trunk/raster/r.surf.area/area.c 
-# for surface area (from GRASS GIS)
-
+# fftshift in r
 # https://stackoverflow.com/questions/40376299/r-fft-fourier-spectrum-of-image
 
 # best resource for fourier and surface area/slope variables
 # https://www.ntmdt-si.ru/data/media/files/manuals/image_analisys_p9_nov12.e.pdf
 
-# changes needed ----------------------------------------------------------
-
-
-
 # load packages -----------------------------------------------------------
 
 library(raster)
 library(tibble)
-library(spatialEco)
 library(dplyr)
 library(plotly)
 library(gstat)
@@ -37,6 +28,9 @@ library(phonTools)
 library(plotrix)
 library(spatial)
 library(MASS)
+library(signal)
+library(pracma)
+library(spatstat)
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/zshift.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/fftshift.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/simpsons.R')
@@ -45,6 +39,7 @@ source('/home/annie/Documents/SyntheticLandscape/surface_metrics/localsurface.R'
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/sdq.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/surfacearea.R')
 source('/home/annie/Documents/SyntheticLandscape/surface_metrics/fourier.R')
+source('/home/annie/Documents/SyntheticLandscape/surface_metrics/aacf.R')
 
 # functions ---------------------------------------------------------------
 
@@ -69,25 +64,16 @@ vals <- getValues(newrast)
 xscale <- 30
 yscale <- 30
 
-x <- coordinates(newrast2)[, 1]
-y <- coordinates(newrast2)[, 2]
+x <- coordinates(newrast)[, 1]
+y <- coordinates(newrast)[, 2]
 z <- vals
 
 # calculate best-fit plane and variables ------------------------------------
 
 # everything is relative to the best-fitting plane, so calculate the formula
 # for that first.
-# ax + by + c = z ---> least squares fitting of plane
 
-# fitting a plane only changes things very slightly for most rasters
-A <- as.matrix(data.frame(coordinates(newrast)[, 1],
-                    coordinates(newrast)[, 2],
-                    rep(1, nrow(coordinates(newrast)))))
-b <- as.matrix(vals, ncol = 1)
-fit <- (solve((t(A) %*% A)) %*% t(A)) %*% b
-errors <- b - (A %*% fit)
-
-### New - 2nd order polynomial least squares fit
+# 2nd order polynomial least squares fit
 surfmod <- surf.ls(np = 2, x, y, z)
 surf <- trmat(surfmod, min(x), max(x), min(y), max(y), 371)
 eqscplot(surf, type = 'n')
@@ -156,8 +142,12 @@ abline(v = Smr1, col = 'green')
 abline(v = Smr2, col = 'green')
 
 # calculate height at various percentiles of z (see fig.2 in Kedron et al. 2018 paper)
+z00 <- (1 - quantile(mod, probs = c(0))[[1]])
 z05 <- (1 - quantile(mod, probs = c(0.05))[[1]])
+z10 <- (1 - quantile(mod, probs = c(0.10))[[1]])
+z50 <- (1 - quantile(mod, probs = c(0.50))[[1]])
 z80 <- (1 - quantile(mod, probs = c(0.80))[[1]])
+z95 <- (1 - quantile(mod, probs = c(0.95))[[1]])
 
 # basic surface metrics ---------------------------------------------------
 
@@ -208,6 +198,13 @@ Svk <- abs((1 - quantile(mod, probs = 1)) - (1 - quantile(mod, probs = Smr2)))[[
 
 # reduced peak height = height of upper left triangle in abbott curve
 Spk <- abs((1 - quantile(mod, probs = 0)) - (1 - quantile(mod, probs = Smr1)))[[1]]
+
+# X-Y% height bearing area curve = various height intervals of the Bearing curve:
+# 0-5, 5-10, 10-50, 50-95
+Sdc0_5 <- z00 - z05
+Sdc5_10 <- z05 - z10
+Sdc10_50 <- z10 - z50
+Sdc50_95 <- z50 - z95
 
 # calculate local variables -----------------------------------------------
 # from Image Metrology:
@@ -277,45 +274,21 @@ Sfd <- sfd(z, newrast2, x, y)
 
 # spatial autocorrelation metrics -----------------------------------------
 # surface lay = direction with highest correlation
-#  the autocorrelation function can then be estimated through 
+# the autocorrelation function can then be estimated through 
 # an inverse FFT of the power spectral density
 
 # from https://link.springer.com/content/pdf/10.1007%2F978-1-4757-3369-3_5.pdf
 
-# get raster dimensions
-M <- ncol(newrast2)
-N <- nrow(newrast2)
+# calculate areal autocorrelation function values and image
+aacf_data <- aacf(newrast2, plot = TRUE)
 
-# create windows to prevent leakage
-wc <- hanning(M)
-wr <- hanning(N)
+# correlation length 20 and 37% = horizontal distance of areal autocorrelation
+# function that has fastest decay to 20 and 37%, respectively
+sclvals <- scl(aacf_img = aacf_data[[2]], threshold = c(0.20, 1 / exp(1)), plot = TRUE)
+Scl20 <- sclvals[[1]]
+Scl37 <- sclvals[[2]]
 
-w <- meshgrid(wr, wc)
-w <- w[[1]] * w[[2]]
-
-zmatw <- zmat * w
-
-ft <- fft(zmatw)
-
-ps <- (abs(ft) ^ 2) / (M * N)
-
-af <- Re(fft(ps, inverse = TRUE) / (M * N))
-
-af_shift <- fftshift(af) # this is symmetric!
-
-# normalize to max 1 using signal variance
-af_norm <- af_shift / max(as.numeric(af_shift), na.rm = TRUE)
-af_img <- setValues(newrast2, af_norm)
-plot(af_img)
-# now calculate autocorrelation vector for each direction (upper half of image)
-# get minimum length to 20% autocorrelation and 1/e autocorrelation
-# than ratio of fastest to slowest decay to 20% and 1/e
-
-# rate at which autocorrelation decays to 20, 37% for each direction
-
-# distance of decay to 20, 37% autocorrelation in the direction with fastest decays
-# scl20, scl37
-
-# isolate fastest and slowest rates of decay to 20, 37% autocorrelation
-# str20, str37
-# ratios of fastest/slowest rates
+# texture aspect ratio 20 and 37% = ratio of fastest to slowest decay to correlation
+# 20% and 37%, respectively, of autocorrelation function
+Str20 <- Scl20 / sclvals[[3]]
+Str37 <- Scl37 / sclvals[[4]]
