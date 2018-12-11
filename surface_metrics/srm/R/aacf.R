@@ -1,4 +1,4 @@
-#' Areal autocorrelation function.
+#' Estimate the areal autocorrelation function.
 #'
 #' Calculates the areal autocorrelation function (AACF) as the
 #' inverse of the Fourier power spectrum. \code{aacf(x)} returns
@@ -23,22 +23,24 @@ aacf <- function(x) {
   M <- ncol(x)
   N <- nrow(x)
 
+  # convert raster values to matrix
   zmat <- matrix(getValues(x), ncol = M, nrow = N)
 
   # create windows to prevent leakage
   wc <- hanning(M)
   wr <- hanning(N)
 
+  # create matrix of weights
   w <- meshgrid(wr, wc)
   w <- w[[1]] * w[[2]]
 
   # apply window weights
   zmatw <- zmat * w
 
-  # Fourier transform
+  # perform Fourier transform
   ft <- fft(zmatw)
 
-  # power spectrum
+  # calculate power spectrum
   ps <- (abs(ft) ^ 2) / (M * N)
 
   # autocorrelation function
@@ -48,26 +50,31 @@ aacf <- function(x) {
   # normalize to max 1
   af_norm <- af_shift / max(as.numeric(af_shift), na.rm = TRUE)
 
-  af_img <- setValues(rast, af_norm)
-
-  if (plot == TRUE) {
-    plot(af_img)
-  }
+  # set values of new raster
+  af_img <- setValues(x, af_norm)
 
   return (list(af_norm, af_img))
 }
 
 
-#' Correlation length.
+#' Calculate correlation length.
 #'
-#' Calculates the distances to specified autocorrelation
-#' values (e.g., 20%) of the areal autocorrelation function (AACF).
+#' Calculates the smallest and largest distances to specified autocorrelation
+#' values (e.g., 0.2) of the areal autocorrelation function (AACF). All 180
+#' degrees from the origin of the AACF image are considered for the calculation.
 #'
 #' @param aacf An n x n raster of the areal autocorrelation function,
 #'   produced by the function \code{aacf(x)}.
-#' @return A list containing matrix and image representations
-#'   of the AACF. Both matrix and image values are normalized
-#'   so that the maximum is equal to 1.
+#' @param threshold A numeric vector containing values between 0 and 1. Indicates
+#'   the autocorrelation values to which the rates of decline are measured.
+#' @param plot Logical. Defaults to \code{FALSE}. If \code{TRUE}, the AACF and
+#'   lines showing the considered directions of autocorrelation from the origin
+#'   will be plotted.
+#' @return A list containing the minimum and maximum distances from an
+#'   autocorrelation value of 1 to the specified autocorrelation values < 1.
+#'   Distances are in the units of the x, y coordinates of the raster image. If more
+#'   than one threshold value is specified, the order of this list will be
+#'   \code{[minval(t1), maxval(t1), minval(t2), maxval(t2)]}.
 #' @examples
 #' # import raster image
 #' data(orforest)
@@ -75,9 +82,12 @@ aacf <- function(x) {
 #' # calculate aacf img and matrix
 #' aacf_list <- aacf(orforest)
 #'
-#' # plot resulting aacf image
-#' plot(aacf_list[[2]])
-scl <- function(aacf, threshold = c(0.20, 1 / exp(1))) {
+#' # estimate the fastest/slowest declines to 0.20 and 0.37 (1/e) autocorrelation
+#' sclvals <- scl(aacf_list[[2]])
+#'
+#' # calculate Scl20, the minimum distance to an autocorrelation value of 0.2 in the AACF
+#' Scl20 <- sclvals[[1]]
+scl <- function(aacf, threshold = c(0.20, 1 / exp(1)), plot = FALSE) {
   # borrow most from fourier functions
 
   # take amplitude image, cut in half (y direction)
@@ -116,23 +126,38 @@ scl <- function(aacf, threshold = c(0.20, 1 / exp(1))) {
   # each line has length = half_dist, with each point approx. 1 pixel apart
   fast_dists <- list()
   for (i in 1:length(threshold)) {
-    fast_dists[[i]] <- min_dist(threshold[i], Aalpha)
+    fast_dists[[i]] <- mindist(threshold[i], Aalpha)
   }
 
   slow_dists <- list()
   for (i in 1:length(threshold)) {
-    slow_dists[[i]] <- max_dist(threshold[i], Aalpha)
+    slow_dists[[i]] <- maxdist(threshold[i], Aalpha)
   }
 
   return(c(fast_dists, slow_dists))
 }
 
-# minimum  distance to threshold values
-min_dist <- function(t, Aalpha) {
+#' Estimate minimum correlation length.
+#'
+#' Internal function to calculates the minimum distances to specified
+#' autocorrelation values (e.g., 0.2) of the areal autocorrelation
+#' function (AACF). All 180 degrees from the origin of the AACF image
+#' are considered for the calculation.
+#'
+#' @param threshold A number with a value between 0 and 1. Indicates
+#'   the autocorrelation value to which the rates of decline are measured.
+#' @param Aalpha An list of dataframes produced by \code{scl()} that contain
+#'   the AACF values along lines extending in multiple directions from the
+#'   AACF origin (autocorrelation = 1).
+#' @return A list containing the minimum distances from an
+#'   autocorrelation value of 1 to the specified autocorrelation value < 1.
+#'   Distances are in the units of the x, y coordinates of the raster image.
+#' @examples
+mindist <- function(threshold, Aalpha) {
   # get index of minimum <= threshold value
   for (j in 1:length(Aalpha)) {
     decay_ind[[j]] <- lapply(Aalpha[[j]], FUN = function(x)
-      min(which(x[, 2] <= t), na.rm = TRUE))
+      min(which(x[, 2] <= threshold), na.rm = TRUE))
   }
   decay_ind <- unlist(decay_ind)
 
@@ -152,11 +177,27 @@ min_dist <- function(t, Aalpha) {
   return(decay_dist)
 }
 
-max_dist <- function(t, Aalpha) {
+#' Estimate maximum correlation length.
+#'
+#' Internal function to calculates the maximum distances to specified
+#' autocorrelation values (e.g., 0.2) of the areal autocorrelation
+#' function (AACF). All 180 degrees from the origin of the AACF image
+#' are considered for the calculation.
+#'
+#' @param threshold A number with a value between 0 and 1. Indicates
+#'   the autocorrelation value to which the rates of decline are measured.
+#' @param Aalpha An list of dataframes produced by \code{scl()} that contain
+#'   the AACF values along lines extending in multiple directions from the
+#'   AACF origin (autocorrelation = 1).
+#' @return A list containing the maximum distances from an
+#'   autocorrelation value of 1 to the specified autocorrelation value < 1.
+#'   Distances are in the units of the x, y coordinates of the raster image.
+#' @examples
+maxdist <- function(threshold, Aalpha) {
   # get index of minimum <= threshold value
   for (j in 1:length(Aalpha)) {
     decay_ind[[j]] <- lapply(Aalpha[[j]], FUN = function(x)
-      min(which(x[, 2] <= t), na.rm = TRUE))
+      min(which(x[, 2] <= threshold), na.rm = TRUE))
   }
   decay_ind <- unlist(decay_ind)
 

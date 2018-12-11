@@ -2,7 +2,7 @@
 % Please edit documentation in R/aacf.R
 \name{aacf}
 \alias{aacf}
-\title{Areal autocorrelation function.}
+\title{Estimate the areal autocorrelation function.}
 \usage{
 aacf(x)
 }
