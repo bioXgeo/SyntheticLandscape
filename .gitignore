@@ -36,3 +36,6 @@ vignettes/*.pdf
 
 # Docs on metrics
 /docs
+
+# Raw data for package
+/surface_metrics/srm/data-raw
