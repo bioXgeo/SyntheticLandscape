@@ -21,10 +21,10 @@ the AACF in both matrix and image format.
 }
 \examples{
 # import raster image
-data(orforest)
+data(normforest)
 
 # calculate aacf img and matrix
-aacf_list <- aacf(orforest)
+aacf_list <- aacf(normforest)
 
 # plot resulting aacf image
 plot(aacf_list[[2]])

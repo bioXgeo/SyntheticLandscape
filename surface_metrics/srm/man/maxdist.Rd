@@ -4,7 +4,7 @@
 \alias{maxdist}
 \title{Estimate maximum correlation length.}
 \usage{
-maxdist(threshold, Aalpha)
+maxdist(threshold, Aalpha, aacfimg)
 }
 \arguments{
 \item{threshold}{A number with a value between 0 and 1. Indicates
@@ -13,6 +13,9 @@ the autocorrelation value to which the rates of decline are measured.}
 \item{Aalpha}{An list of dataframes produced by \code{scl()} that contain
 the AACF values along lines extending in multiple directions from the
 AACF origin (autocorrelation = 1).}
+
+\item{aacf}{An 0.5n x n raster of the areal autocorrelation function. This
+is the AACF raster split in two in terms of height.}
 }
 \value{
 A list containing the maximum distances from an
