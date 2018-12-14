@@ -83,9 +83,6 @@ area_above <- function(f, a, b, n = 100) {
 #' # calculate integral
 #' int_area <- simpsons(f = mod, b = 1, a = 0.8, n = 500)
 simpsons <- function(f, a, b, n = 100) {
-  # numerical integral of fun from a to b
-  # using the trapezoid rule with n subdivisions
-  # assume a < b and n is a positive integer
   h <- (b - a) / n # sub-interval width
   x <- seq(a, b, by = h)
   y <- f(x)

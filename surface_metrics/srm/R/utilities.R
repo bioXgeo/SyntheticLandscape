@@ -54,7 +54,7 @@ fitplane <- function(x, order) {
 #'
 #' Finds the best fit polynomial plane for a raster image. This
 #' function tests least squares polynomial fits with orders of
-#' 1 - 3 and determines which order minimizes the error when the
+#' 2 - 3 and determines which order minimizes the error when the
 #' fit is subtracted from the original image.
 #'
 #' @param x A raster.
@@ -70,15 +70,15 @@ fitplane <- function(x, order) {
 #' # plot the fit
 #' plot(x)
 bestfitplane <- function(x) {
-  # fit least squares plane for polynomials from orders 1 - 3
-  mods <- lapply(seq(1, 3), FUN = function(i) fitplane(x, order = i))
+  # fit least squares plane for polynomials from orders 2 - 3
+  mods <- lapply(seq(2, 3), FUN = function(i) fitplane(x, order = i))
 
   # convert raster to matrix
   xmat <- matrix(x, nrow = nrow(x), ncol = ncol(x), byrow = TRUE)
 
   # calculate raster errors from best fit planes for each order tested
-  errlist <- lapply(seq(1, 3), FUN = function(i) xmat - mods[[i]])
-  meanerr <- lapply(seq(1, 3), FUN = function(i) mean(errlist[[i]], na.rm = TRUE))
+  errlist <- lapply(seq(2, 3), FUN = function(i) xmat - mods[[(i - 1)]])
+  meanerr <- lapply(seq(2, 3), FUN = function(i) mean(errlist[[(i - 1)]], na.rm = TRUE))
 
   # determine which order is best
   bestfit <- which(as.numeric(meanerr) == min(as.numeric(meanerr), na.rm = TRUE))
@@ -89,8 +89,37 @@ bestfitplane <- function(x) {
   }
 
   # fill in raster with best fit values
-  bfx <- setValues(x, errlist[[bestfit]])
+  bfx <- setValues(x, mods[[bestfit]])
 
   print(paste('Order of polynomial that minimizes errors: ', bestfit, sep = ''))
   return(bfx)
+}
+
+#' Removes the best fit polynomial plane from a raster.
+#'
+#' Finds the best fit polynomial plane for a raster image and
+#' subtracts it from the actual raster values. The remaining
+#' raster has positive values where the actual values are higher
+#' than the plane and negative values where the actual value
+#' are lower than the plane.
+#'
+#' @param x A raster.
+#' @return A raster of the same size as the input with values
+#'   equal to the difference between the original and bestfit
+#'   plane rasters.
+#' @examples
+#' # import raster image
+#' data(orforest)
+#'
+#' # remove the least squares polynomial plane
+#' new_rast <- remove_plane(orforest)
+#'
+#' # plot
+#' plot(new_rast)
+remove_plane <- function(x) {
+  bfx <- bestfitplane(x)
+
+  errors <- x - bfx # higher = above plane, lower = below plane
+
+  return(errors)
 }

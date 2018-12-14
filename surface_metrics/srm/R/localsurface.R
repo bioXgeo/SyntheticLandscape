@@ -211,3 +211,30 @@ ssc <- function(x) {
 
   return(ssc)
 }
+
+# summit density = number of local peaks per area
+sds <- function(x) {
+  M <- nrow(x)
+  N <- ncol(x)
+
+  peaks <- findpeaks(x)
+
+  val <- nrow(peaks) / ((N - 1) * (M - 1))
+
+  return(val)
+}
+
+# ten-point height = avg. height above mean surface for five highest local maxima plus avg.
+# height below for five lowest local minima
+s10z <- function(x) {
+  peaks <- findpeaks(x)
+  valleys <- findvalleys(x)
+
+  # find top 5 peaks, valleys
+  top_peaks <- peaks[order(peaks$val, decreasing = TRUE)[1:5],]
+  bottom_valleys <- valleys[order(valleys$val)[1:5],]
+
+  val <- (sum(top_peaks$val, na.rm = TRUE) + sum(abs(bottom_valleys$val, na.rm = TRUE))) / 5
+
+  return(val)
+}

@@ -221,3 +221,20 @@ maxdist <- function(threshold, Aalpha, aacfimg) {
 
   return(decay_dist)
 }
+
+# texture aspect ratio 20 and 37% = ratio of fastest to slowest decay to correlation
+# 20% and 37%, respectively, of autocorrelation function
+str <- function(x, threshold = c(0.20, 1 / exp(1))) {
+  aacf_img <- aacf(x)[[2]]
+
+  sclvals <- scl(x = aacf_img, threshold = threshold, plot = FALSE)
+
+  vals <- list()
+  for (i in 1:length(threshold)) {
+    scl <- sclvals[[i]]
+    half <- 0.5 * length(threshold)
+    vals[[i]] <- scl / sclvals[[half + i]]
+  }
+
+  return(vals)
+}

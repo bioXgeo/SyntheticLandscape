@@ -16,7 +16,7 @@ A raster of the same size as the input with values
 \description{
 Finds the best fit polynomial plane for a raster image. This
 function tests least squares polynomial fits with orders of
-1 - 3 and determines which order minimizes the error when the
+2 - 3 and determines which order minimizes the error when the
 fit is subtracted from the original image.
 }
 \examples{

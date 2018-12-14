@@ -56,6 +56,7 @@ zshift <- function(r, xdist = 0, ydist = 0, xrm, yrm, scale = FALSE) {
   } else {
     zmat <- matrix(z, nrow = N, ncol = M, byrow = TRUE)
   }
+
   # row/col of each center
   rows <- rep(1:N, each = M)
   cols <- rep(rep(1:M), N)
