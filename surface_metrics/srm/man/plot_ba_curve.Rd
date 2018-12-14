@@ -33,5 +33,4 @@ data(normforest)
 
 # plot the bearing area curve
 plot_ba_curve(normforest, divisions = TRUE)
-### START HERE
 }

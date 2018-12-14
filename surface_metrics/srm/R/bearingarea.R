@@ -72,6 +72,31 @@ plot_ba_curve <- function(x, divisions = FALSE) {
   }
 }
 
+#' Finds the flattest part of the Bearing Area curve.
+#'
+#' Locates the flattest x percentage of the Bearing Area
+#' curve. Meant to locate the flattest 40 percent of the
+#' Bearing Area curve as used in several roughness parameter
+#' calculations.
+#'
+#' @param x A raster.
+#' @param perc Numeric between 0 and 1. The percentage of
+#'   the curve over which to fit the line.
+#' @return A list containing the equation for the best fit
+#'   line, the predicted values from that line, the high
+#'   and low y-intercept values for the intersection points
+#'   of the line with the Bearing Area curve, and the high
+#'   and low x-intercept values for the intersection points
+#'   of the line with the Bearing Area curve.
+#' @examples
+#' # import raster image
+#' data(normforest)
+#'
+#' # locate the flattest 40% of the bearing area curve
+#' line_data <- find_flat(normforest, perc = 0.4)
+#'
+#' # extract the equation of the line
+#' bf_line <- line_data[[1]]
 find_flat <- function(x, perc = 0.4) {
   f <- bearing_area(x)
 
