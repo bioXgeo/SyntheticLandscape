@@ -1,40 +1,82 @@
-
+#' Calculates the rotated Bearing Area curve.
+#'
+#' Finds a rotated version of the Bearing Area (Abbott-Firestone)
+#' curve from a raster. The resulting function should be
+#' rotated 90 degrees clockwise to get the actual Bearing
+#' Area curve.
+#'
+#' @param x A raster.
+#' @return A function describing the rotated Bearing Area curve.
+#' @examples
+#' # import raster image
+#' data(normforest)
+#'
+#' # find the rotated Bearing Area curve.
+#' ba_func <- bearing_area(normforest)
+#'
+#' # rotate the values and re-plot
+#' xval <- environment(ba_func)$y
+#' yval <- (1 - environment(ba_func)$x)
+#' plot(yval ~ xval)
 bearing_area <- function(x) {
   z <- getValues(x)
 
   # basic values
-  N <- length(errors)
-  s <- sd(errors)
-  z <- errors
-  zbar <- mean(errors)
+  N <- length(z)
+  s <- sd(z)
+  zbar <- mean(z, na.rm = TRUE)
 
   f <- ecdf(1 - z)
-
-  yval <- (1 - environment(f)$x)
-  xval <- environment(mod)$y
 
   return(f)
 }
 
-plot_ba_curve <- function(f, divisions = FALSE) {
+#' Plots the Bearing Area curve.
+#'
+#' Calculates and plots the Bearing Area curve for a raster
+#' using the \code{bearing_area()} function (with correctly
+#' rotated results).
+#'
+#' If \code{divisions = TRUE}, the lines representing the
+#' best fit line to the flattest 40 percent of the curve will be
+#' shown, as well as both the x and y interception points
+#' of that line.
+#'
+#' @param x A raster.
+#' @param divisions Logical, defaults to \code{FALSE}. If
+#'   \code{TRUE}, divisions of the curve will be plotted.
+#'   See details section for more information.
+#' @return Plots the Bearing Area curve for a raster.
+#' @examples
+#' # import raster image
+#' data(normforest)
+#'
+#' # plot the bearing area curve
+#' plot_ba_curve(normforest, divisions = TRUE)
+plot_ba_curve <- function(x, divisions = FALSE) {
+  f <- bearing_area(x)
+
   xval <- environment(f)$y
   yval <- (1 - environment(f)$x)
 
   plot(yval ~ xval)
 
   if (divisions == TRUE) {
-    line_fit <- find_flat(f, perc = 0.4)
+    line_fit <- find_flat(x, perc = 0.4)
 
     abline(line_fit[[1]]$coefficients[[1]], line_fit[[1]]$coefficients[[2]], col = 'blue')
-    abline(h = line_fit[[2]], col = 'red')
     abline(h = line_fit[[3]], col = 'red')
-    abline(v = line_fit[[4]], col = 'green')
+    abline(h = line_fit[[4]], col = 'red')
     abline(v = line_fit[[5]], col = 'green')
+    abline(v = line_fit[[6]], col = 'green')
   }
 }
 
 find_flat <- function(x, perc = 0.4) {
   f <- bearing_area(x)
+
+  xval <- environment(f)$y
+  yval <- (1 - environment(f)$x)
 
   # find 40% of curve with least decline
   # use symmetric difference quotient to estimate the derivative at evenly spaced points
@@ -43,15 +85,15 @@ find_flat <- function(x, perc = 0.4) {
   even_y <- (1 - quantile(f, probs = even_x))
   forty_length <- perc * length(even_x)
   h <- 0.001
-  slopes <- slopecalc(even_x, h) # calculate slope at every point
+  slopes <- slopecalc(even_x, h, f = f) # calculate slope at every point
   means <- slopemeans(slopes) # calculate averages for each 40% segment
 
   # x value of start of 40% section with smallest decline
   slope_min <- means[means$slope == min(means$slope),]
 
   # calculate least-squares line for 40% of curve with smallest decline (lowest slope)
-  lm_data <- data.frame(x = newx[newx >= slope_min$xstart & newx <= slope_min$xend],
-                        y = newy[newx >= slope_min$xstart & newx <= slope_min$xend])
+  lm_data <- data.frame(x = xval[xval >= slope_min$xstart & xval <= slope_min$xend],
+                        y = yval[xval >= slope_min$xstart & xval <= slope_min$xend])
   ls_line <- lm(y ~ x, data = lm_data)
 
   # get value of ls line between 0 and 1
