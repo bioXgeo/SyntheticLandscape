@@ -74,7 +74,7 @@ aacf <- function(x) {
 #'   autocorrelation value of 1 to the specified autocorrelation values < 1.
 #'   Distances are in the units of the x, y coordinates of the raster image. If more
 #'   than one threshold value is specified, the order of this list will be
-#'   \code{[minval(t1), maxval(t1), minval(t2), maxval(t2)]}.
+#'   \code{[minval(t1), minval(t2), maxval(t1), maxval(t2)]}.
 #' @examples
 #' # import raster image
 #' data(normforest)
@@ -153,6 +153,18 @@ scl <- function(x, threshold = c(0.20, 1 / exp(1)), plot = FALSE) {
 #' @return A list containing the minimum distances from an
 #'   autocorrelation value of 1 to the specified autocorrelation value < 1.
 #'   Distances are in the units of the x, y coordinates of the raster image.
+#' @examples
+#' # import raster image
+#' data(normforest)
+#'
+#' # calculate aacf img and matrix
+#' aacf_list <- aacf(normforest)
+#'
+#' # estimate the fastest/slowest declines to 0.20 and 0.37 (1/e) autocorrelation
+#' sclvals <- scl(aacf_list[[2]])
+#'
+#' # calculate Scl20, the minimum distance to an autocorrelation value of 0.2 in the AACF
+#' Scl20 <- sclvals[[1]]
 mindist <- function(threshold, Aalpha, aacfimg) {
   # get index of minimum <= threshold value
   decay_ind <- list()
@@ -222,18 +234,43 @@ maxdist <- function(threshold, Aalpha, aacfimg) {
   return(decay_dist)
 }
 
-# texture aspect ratio 20 and 37% = ratio of fastest to slowest decay to correlation
-# 20% and 37%, respectively, of autocorrelation function
+#' Estimate texture aspect ratio.
+#'
+#' Calculates the texture aspect ratio (Str) at defined autocorrelation
+#' values. The texture aspect ratio is the ratio of the fastest to
+#' the slowest decay lengths of the autocorrelation function to the
+#' defined autocorrelation values.
+#'
+#' @param x A raster.
+#' @param threshold A vector of autocorrelation values with values
+#'   between 0 and 1. Indicates the autocorrelation value(s) to
+#'   which the rates of decline are measured.
+#' @return A vector with length equal to that of \code{threshold}
+#'   containing the texture aspect ratio(s) for the input autocorrelation
+#'   value(s).
+#' @examples
+#' # import raster image
+#' data(normforest)
+#'
+#' # estimate the texture aspect ratio for autocorrelation
+#' # thresholds of 0.20 and 0.37 (1/e)
+#' strvals <- str(normforest, threshold = c(0.20, 1 / exp(1)))
+#'
+#' # calculate Str20, the texture aspect ratio for
+#' # autocorrelation value of 0.2 in the AACF
+#' Str20 <- strvals[[1]]
 str <- function(x, threshold = c(0.20, 1 / exp(1))) {
   aacf_img <- aacf(x)[[2]]
 
   sclvals <- scl(x = aacf_img, threshold = threshold, plot = FALSE)
 
   vals <- list()
+  # because the list contains both min/max vals, need double the length
   for (i in 1:length(threshold)) {
-    scl <- sclvals[[i]]
-    half <- 0.5 * length(threshold)
-    vals[[i]] <- scl / sclvals[[half + i]]
+    minval <- sclvals[[i]]
+    j <- length(threshold) + i
+    maxval <- sclvals[[j]]
+    vals[[i]] <- minval / maxval
   }
 
   return(vals)

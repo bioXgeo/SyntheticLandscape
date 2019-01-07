@@ -28,3 +28,16 @@ autocorrelation values (e.g., 0.2) of the areal autocorrelation
 function (AACF). All 180 degrees from the origin of the AACF image
 are considered for the calculation.
 }
+\examples{
+# import raster image
+data(normforest)
+
+# calculate aacf img and matrix
+aacf_list <- aacf(normforest)
+
+# estimate the fastest/slowest declines to 0.20 and 0.37 (1/e) autocorrelation
+sclvals <- scl(aacf_list[[2]])
+
+# calculate Scl20, the minimum distance to an autocorrelation value of 0.2 in the AACF
+Scl20 <- sclvals[[1]]
+}

@@ -22,7 +22,7 @@ A list containing the minimum and maximum distances from an
   autocorrelation value of 1 to the specified autocorrelation values < 1.
   Distances are in the units of the x, y coordinates of the raster image. If more
   than one threshold value is specified, the order of this list will be
-  \code{[minval(t1), maxval(t1), minval(t2), maxval(t2)]}.
+  \code{[minval(t1), minval(t2), maxval(t1), maxval(t2)]}.
 }
 \description{
 Calculates the smallest and largest distances to specified autocorrelation
