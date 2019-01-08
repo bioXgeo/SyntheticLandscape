@@ -1,4 +1,19 @@
-# average roughness = average absolute deviation of surface heights from mean
+#' Calculates the average roughness of a surface.
+#'
+#' Finds the average roughness of a surface (Sa) as the absolute
+#' deviation of surface heights from the mean surface height.
+#' Height is measured as the value of a raster and may not
+#' necessarily represent actual height.
+#'
+#' @param x A raster.
+#' @return A value of average roughness in the units of the
+#'   original raster.
+#' @examples
+#' # import raster image
+#' data(normforest)
+#'
+#' # find the surface roughness
+#' roughness <- sa(normforest)
 sa <- function(x) {
   z <- getValues(x)
   zbar <- mean(z, na.rm = TRUE)
