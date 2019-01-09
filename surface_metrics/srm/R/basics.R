@@ -24,7 +24,23 @@ sa <- function(x) {
   return(val)
 }
 
-# root mean square roughness = standard deviation of surface heights
+#' Calculates the root mean square roughness of a surface.
+#'
+#' Finds the root mean square roughness of a surface
+#' (Sq) as the standard deviation of surface heights
+#' from the mean surface height. Height is measured as
+#' the value of a raster and may not necessarily
+#' represent actual height.
+#'
+#' @param x A raster.
+#' @return A value of root mean square roughness in
+#'   the units of the original raster.
+#' @examples
+#' # import raster image
+#' data(normforest)
+#'
+#' # find the surface roughness
+#' roughness <- sq(normforest)
 sq <- function(x) {
   z <- getValues(x)
 
@@ -33,7 +49,25 @@ sq <- function(x) {
   return(val)
 }
 
-# surface skewness = asymmetry of surface height distribution
+#' Calculates the skewness of raster values.
+#'
+#' Finds the Fisher-Pearson coefficient of skewness
+#' for raster values (Ssk). Skewness represents the
+#' asymmetry of the surface height distribution.
+#' Height is measured as the value of a raster and
+#' may not necessarily represent actual height.
+#'
+#' @param x A raster.
+#' @param adj Logical, defaults to \code{TRUE}. If \code{TRUE},
+#'   the adjusted Fisher-Pearson coefficient of skewness
+#'   is calculated. Otherwise, the standard coefficient is
+#'   calculated.
+#' @return A numeric value representing skewness.
+#' # import raster image
+#' data(normforest)
+#'
+#' # find the adjusted coefficient of skewness
+#' Ssk <- ssk(normforest, adj = TRUE)
 ssk <- function(x, adj = TRUE) {
   z <- getValues(x)
   zbar <- mean(z, na.rm = TRUE)
@@ -51,7 +85,26 @@ ssk <- function(x, adj = TRUE) {
   return(val)
 }
 
-# surface kurtosis = peaked-ness of surface distribution
+#' Calculates the kurtosis of raster values.
+#'
+#' Finds the kurtosis for a distribution of raster
+#' values (Sku). Kurtosis represents the peakedness
+#' of the raster surface height distribution. Height
+#' is measured as the value of a raster and may not
+#' necessarily represent actual height.
+#'
+#' @param x A raster.
+#' @param excess Logical, defaults to \code{TRUE}. If
+#'   \code{TRUE}, excess kurtosis is calculated. If \code{FALSE},
+#'   kurtosis is calculated as the difference from the
+#'   normal distribution.
+#' @return A numeric value representing kurtosis.
+#' @examples
+#' # import raster image
+#' data(normforest)
+#'
+#' # find the excess kurtosis of the raster distribution
+#' Sku <- sku(normforest, excess = TRUE)
 sku <- function(x, excess = TRUE) {
   z <- getValues(x)
   zbar <- mean(z, na.rm = TRUE)
@@ -69,7 +122,20 @@ sku <- function(x, excess = TRUE) {
   return(val)
 }
 
-# maximum valley depth = lowest value in the landscape
+#' Calculates the maximum valley depth of a surface raster.
+#'
+#' Finds the absolute value of the lowest value in the
+#' landscape (maximum valley depth; Sv) for a raster
+#' representing a surface.
+#'
+#' @param x A raster.
+#' @return A numeric value of maximum valley depth.
+#' @examples
+#' # import raster image
+#' data(normforest)
+#'
+#' # find the maximum valley depth
+#' Sv <- sv(normforest)
 sv <- function(x) {
   z <- getValues(x)
 
@@ -78,7 +144,20 @@ sv <- function(x) {
   return(val)
 }
 
-# maximum peak height = highest value in the landscape
+#' Calculates the maximum peak height of a surface raster.
+#'
+#' Finds the absolute value of the highest value in the
+#' landscape (maximum peak height; Sp) for a raster
+#' representing a surface.
+#'
+#' @param x A raster.
+#' @return A numeric value of maximum peak height.
+#' @examples
+#' # import raster image
+#' data(normforest)
+#'
+#' # find the maximum peak height
+#' Sp <- sp(normforest)
 sp <- function(x) {
   z <- getValues(x)
 
@@ -87,7 +166,20 @@ sp <- function(x) {
   return(val)
 }
 
-# mean peak height = average peak height
+#' Calculates the mean peak height of a surface raster.
+#'
+#' Finds the mean height of positive values in the
+#' landscape (mean peak height; Smean) for a raster
+#' representing a surface.
+#'
+#' @param x A raster.
+#' @return A numeric value of mean peak height.
+#' @examples
+#' # import raster image
+#' data(normforest)
+#'
+#' # find the maximum peak height
+#' Smean <- smean(normforest)
 smean <- function(x) {
   z <- getValues(x)
 

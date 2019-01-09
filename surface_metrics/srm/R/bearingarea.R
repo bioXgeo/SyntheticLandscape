@@ -201,8 +201,10 @@ sk <- function(x) {
 
 # reduced valley depth = height of triangle drawn at 100% on Abbott curve
 svk <- function(x) {
+  # find the bearing area curve
   f <- bearing_area(x)
 
+  # find the flattest 40% of the bearing area curve
   line_info <- find_flat(x, perc = 0.4)
 
   smr2 <- line_info[[5]]
@@ -214,8 +216,10 @@ svk <- function(x) {
 
 # reduced peak height = height of upper left triangle in abbott curve
 spk <- function(x) {
+  # find the bearing area curve
   f <- bearing_area(x)
 
+  # find the flattest 40% of bearing area curve
   line_info <- find_flat(x, perc = 0.4)
 
   smr1 <- line_info[[4]]

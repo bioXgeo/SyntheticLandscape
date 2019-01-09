@@ -144,9 +144,11 @@ srw <- function(x, plot = FALSE) {
     templine <- crop(lines[i], extent(xmin(amp_img), xmax(amp_img), ymin, ymax(amp_img)))
     Br[i] <- extract(amp_img, templine, fun = sum)
   }
+
   if (plot == TRUE) {
     plot(unlist(Br) ~ (1 / radius), type = 'l')
   }
+
   Srw <- radius[which(unlist(Br) == max(unlist(Br), na.rm = TRUE))]
   Srwi <- mean(unlist(Br), na.rm = TRUE) / max(unlist(Br), na.rm = TRUE)
 
