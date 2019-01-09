@@ -136,6 +136,22 @@ find_flat <- function(x, perc = 0.4) {
   return(list(ls_line, pred_data, ls_int_high, ls_int_low, Smr1, Smr2))
 }
 
+#' Value of the bearing area curve at a specified value.
+#'
+#' Determines the value of the bearing area curve for a
+#' specific value along the x-axis (\code{xval}).
+#'
+#' @param x A raster.
+#' @param xval Numeric value along the x-axis.
+#' @return A numeric value of the bearing area function
+#'   corresponding to \code{xval}.
+#' @examples
+#' # import raster image
+#' data(normforest)
+#'
+#' # determine the bearing area function value
+#' # corresponding to an x value of 0.4
+#' val <- height_ba(normforest, 0.4)
 height_ba <- function(x, xval) {
   f <- bearing_area(x)
 
@@ -144,6 +160,27 @@ height_ba <- function(x, xval) {
   return(val)
 }
 
+#' Height intervals of the bearing area curve for a raster.
+#'
+#' Determines the height interval (height distance) for
+#' points along the bearing area curve as defined by
+#' their x values.
+#'
+#' @param x A raster.
+#' @param low Numeric value along the x-axis corresponding
+#'   to the lowest value of interest along the x-axis.
+#' @param high Numeric value along the y-axis corresponding
+#'   to the highest value of interest along the x-axis.
+#' @return A numeric value of the difference in height of
+#'   the y values along the bearing area curve corresponding
+#'   to the specified x values.
+#' @examples
+#' # import raster image
+#' data(normforest)
+#'
+#' # determine the 10-40% height interval of the
+#' # bearing area curve
+#' val <- sdc(normforest, 0.1, 0.4)
 sdc <- function(x, low, high) {
   val_low <- height_ba(x, low)
   val_high <- height_ba(x, high)
@@ -153,8 +190,20 @@ sdc <- function(x, low, high) {
   return(val)
 }
 
-# surface bearing index = ratio of Sq to height from top of surface to height at
-# 5% of bearing area (z05)
+#' Surface bearing index of a raster.
+#'
+#' Determines the surface bearing index (Sbi), calculated as the ratio
+#' of root mean square roughness (Sq) to height at 5\%
+#' of bearing area (z05).
+#'
+#' @param x A raster.
+#' @return A numeric value representing the surface bearing index.
+#' @examples
+#' # import raster image
+#' data(normforest)
+#'
+#' # determine the surface bearing index
+#' Sbi <- sbi(normforest)
 sbi <- function(x) {
   Sq <- sq(x)
   z05 <- height_ba(x, 0.05)
@@ -164,30 +213,75 @@ sbi <- function(x) {
   return(val)
 }
 
-# valley fluid retention index = void volume (area under Abbott curve) in 'valley' zone
-# see fig.2a from Kedron et al. (2018)
+#' Valley fluid retention index of a raster.
+#'
+#' Determines the valley fluid retention index (Svi). This
+#' value is the void volume (area under the bearing area
+#' curve) in the 'valley' zone. See Figure 2a from Kedron
+#' et al. (2018) for more details.
+#'
+#' @param x A raster.
+#' @return A numeric value representing the valley fluid
+#' retention index.
+#' @examples
+#' # import raster image
+#' data(normforest)
+#'
+#' # determine the valley fluid retention index
+#' Svi <- svi(normforest)
 svi <- function(x) {
   f <- bearing_area(x)
 
-  val <- simpsons_above(model = f, b = 1, a = 0.8, n = 500)
+  val <- area_above(f = f, b = 1, a = 0.8, n = 500)
 
   return(val)
 }
 
-# core fluid retention index = void volume (area above Abbott curve) in the core zone
-# see fig.2a from Kedron et al. (2018)
+#' Core fluid retention index of a raster.
+#'
+#' Determines the core fluid retention index (Sci). This
+#' value is the void volume (area under the bearing area
+#' curve) in the 'core' zone. See Figure 2a from Kedron
+#' et al. (2018) for more details.
+#'
+#' @param x A raster.
+#' @return A numeric value representing the core fluid
+#' retention index.
+#' @examples
+#' # import raster image
+#' data(normforest)
+#'
+#' # determine the core fluid retention index
+#' Sci <- sci(normforest)
 sci <- function(x) {
   f <- bearing_area(x)
 
-  core_above <- simpsons_above(model = f, b = 1, a = 0.05, n = 1000)
+  core_above <- area_above(f = f, b = 1, a = 0.05, n = 1000)
+
+  # remove the valley zone to get the core zone
   Svi <- svi(x)
   val <- core_above - Svi
 
   return(val)
 }
 
-# core roughness depth = height difference between the intersection points of the found least
-# mean square line in the Abbott curve (see fig. 2b from Kedron et al. 2018)
+#' Core roughness depth of a raster.
+#'
+#' Determines the core roughness depth (Sk), the
+#' height difference between y values of the
+#' intersection points of the least mean square line
+#' fit to the flattest 40\% of the bearing area curve.
+#' See Figure 2a from Kedron et al. (2018) for more details.
+#'
+#' @param x A raster.
+#' @return A numeric value representing the core roughness
+#'   depth of the image.
+#' @examples
+#' # import raster image
+#' data(normforest)
+#'
+#' # determine the core roughness depth
+#' Sk <- sk(normforest)
 sk <- function(x) {
   line_info <- find_flat(x, perc = 0.4)
 
@@ -199,7 +293,23 @@ sk <- function(x) {
   return(val)
 }
 
-# reduced valley depth = height of triangle drawn at 100% on Abbott curve
+#' Reduced valley depth of a raster.
+#'
+#' Determines the reduced valley depth (Svk), the
+#' height difference between y value of the lowest
+#' intersection point of the least mean square line
+#' fit to the flattest 40\% of the bearing area curve and
+#' the minimum y value of the bearing area curve.
+#' See Figure 2a from Kedron et al. (2018) for more details.
+#'
+#' @param x A raster.
+#' @return A numeric value representing the reduced valley depth.
+#' @examples
+#' # import raster image
+#' data(normforest)
+#'
+#' # determine the reduced valley depth
+#' Svk <- svk(normforest)
 svk <- function(x) {
   # find the bearing area curve
   f <- bearing_area(x)
@@ -207,14 +317,30 @@ svk <- function(x) {
   # find the flattest 40% of the bearing area curve
   line_info <- find_flat(x, perc = 0.4)
 
-  smr2 <- line_info[[5]]
+  smr2 <- line_info[[6]]
 
   val <- abs((1 - quantile(f, probs = 1)) - (1 - quantile(f, probs = smr2)))[[1]]
 
   return(val)
 }
 
-# reduced peak height = height of upper left triangle in abbott curve
+#' Reduced peak height of a raster.
+#'
+#' Determines the reduced peak height (Spk), the
+#' height difference between the maximum y value of the
+#' bearing area curve and the y value of the highest
+#' intersection point of the least mean square line
+#' fit to the flattest 40\% of the bearing area curve.
+#' See Figure 2a from Kedron et al. (2018) for more details.
+#'
+#' @param x A raster.
+#' @return A numeric value representing the reduced peak height.
+#' @examples
+#' # import raster image
+#' data(normforest)
+#'
+#' # determine the reduced peak height
+#' Spk <- spk(normforest)
 spk <- function(x) {
   # find the bearing area curve
   f <- bearing_area(x)
@@ -222,7 +348,7 @@ spk <- function(x) {
   # find the flattest 40% of bearing area curve
   line_info <- find_flat(x, perc = 0.4)
 
-  smr1 <- line_info[[4]]
+  smr1 <- line_info[[5]]
 
   val <- abs((1 - quantile(f, probs = 0)) - (1 - quantile(f, probs = smr1)))[[1]]
 

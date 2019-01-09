@@ -85,7 +85,14 @@ area_above <- function(f, a, b, n = 100) {
 simpsons <- function(f, a, b, n = 100) {
   h <- (b - a) / n # sub-interval width
   x <- seq(a, b, by = h)
-  y <- f(x)
+
+  # get y-values of inverse cdf function
+  y <- (1 - quantile(f, probs = x))
+
+  # if y is negative, shift the whole thing up so that min(y) = 0
+  if (sum(y < 0) >= 1) {
+    y <- y + abs(min(y, na.rm = TRUE))
+  }
 
   s <- (h / 3) * (y[[1]] + sum(4 * y[seq(2, n - 1, by = 2)]) +
                                 sum(2 * y[seq(3, n - 1, by = 2)]) +

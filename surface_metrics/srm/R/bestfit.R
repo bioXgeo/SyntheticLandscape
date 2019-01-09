@@ -1,8 +1,8 @@
 # functions to find the best fit line for forty percent of slope with lowest slope
 slopecalc <- function(x, h, f) {
-  xplus <- even_x + h
-  xminus <- even_x - h
-  x <- even_x
+  xplus <- x + h
+  xminus <- x - h
+  x <- x
 
   # figure out ends
   space <- 1 / length(x)
