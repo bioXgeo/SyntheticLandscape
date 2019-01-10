@@ -52,7 +52,8 @@ zshift <- function(r, xdist = 0, ydist = 0, xrm, yrm, scale = FALSE) {
   }
 
   if (scale == TRUE) {
-    zmat <- matrix(((z - min(z)) / (max(z) - min(z))), nrow = N, ncol = M, byrow = TRUE)
+    zmat <- matrix(((z - min(z, na.rm = TRUE)) / (max(z, na.rm = TRUE) - min(z, na.rm = TRUE))),
+                   nrow = N, ncol = M, byrow = TRUE)
   } else {
     zmat <- matrix(z, nrow = N, ncol = M, byrow = TRUE)
   }

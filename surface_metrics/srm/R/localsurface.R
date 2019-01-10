@@ -69,6 +69,7 @@ findpeaks <- function(x) {
                       row = rows, col = cols, check = unlist(check))
   peaks <- peaks[peaks$check ==  TRUE,]
   peaks <- peaks[, 1:6]
+  peaks <- peaks[!is.na(peaks$val),]
 
   return(peaks)
 }
@@ -141,6 +142,7 @@ findvalleys <- function(x) {
                       row = rows, col = cols, check = unlist(check))
   valleys <- valleys[valleys$check ==  TRUE,]
   valleys <- valleys[, 1:6]
+  valleys <- valleys[!is.na(valleys$val),]
 
   return(valleys)
 }
@@ -168,9 +170,6 @@ ssc <- function(x) {
   deltax <- res(x)[1] / mean(res(x)[1], res(x)[2])
   deltay <- res(x)[2] / mean(res(x)[1], res(x)[2])
 
-  # matrix of values
-  zmat <- matrix(((z - min(z)) / (max(z) - min(z))), nrow = N, ncol = M, byrow = TRUE)
-
   # number of peaks
   peaks <- findpeaks(x)
   n <- nrow(peaks)
@@ -191,23 +190,28 @@ ssc <- function(x) {
   z_ymn <- zshift(x, xdist = 0, ydist = -1, scale = TRUE)
   z_ymn <- matrix(z_ymn, nrow = nrow(x), ncol = ncol(x))
 
-  # get z_xpl, z_ypl at peaks (add to df)
-  peaks$val_xpl <- unlist(lapply(seq(1, nrow(peaks)),
-                                 FUN = function(i) z_xpl[peaks$row[i], peaks$col[i]]))
-  peaks$val_ypl <- unlist(lapply(seq(1, nrow(peaks)),
-                                 FUN = function(i) z_ypl[peaks$row[i], peaks$col[i]]))
-  peaks$val_xmn <- unlist(lapply(seq(1, nrow(peaks)),
-                                 FUN = function(i) z_xmn[peaks$row[i], peaks$col[i]]))
-  peaks$val_ymn <- unlist(lapply(seq(1, nrow(peaks)),
-                                 FUN = function(i) z_ymn[peaks$row[i], peaks$col[i]]))
+  if (nrow(peaks) != 0) {
+    # get z_xpl, z_ypl at peaks (add to df)
+    peaks$val_xpl <- unlist(lapply(seq(1, nrow(peaks)),
+                                   FUN = function(i) z_xpl[peaks$row[i], peaks$col[i]]))
+    peaks$val_ypl <- unlist(lapply(seq(1, nrow(peaks)),
+                                   FUN = function(i) z_ypl[peaks$row[i], peaks$col[i]]))
+    peaks$val_xmn <- unlist(lapply(seq(1, nrow(peaks)),
+                                   FUN = function(i) z_xmn[peaks$row[i], peaks$col[i]]))
+    peaks$val_ymn <- unlist(lapply(seq(1, nrow(peaks)),
+                                   FUN = function(i) z_ymn[peaks$row[i], peaks$col[i]]))
 
-  # new center val
-  peaks$val <- unlist(lapply(seq(1, nrow(peaks)),
-                             FUN = function(i) zmat[peaks$row[i], peaks$col[i]]))
+    # new center val
+    peaks$val <- unlist(lapply(seq(1, nrow(peaks)),
+                               FUN = function(i) zmat[peaks$row[i], peaks$col[i]]))
 
-  # calculate curvature with normalized values
-  ssc <- -(1 / (2 * n)) * sum(((((peaks$val - peaks$val_xpl) + (peaks$val - peaks$val_xmn)) / 2) / deltax),
-             ((((peaks$val - peaks$val_ypl) + (peaks$val - peaks$val_ymn)) / 2) / deltay))
+    # calculate curvature with normalized values
+    ssc <- -(1 / (2 * n)) * sum(((((peaks$val - peaks$val_xpl) + (peaks$val - peaks$val_xmn)) / 2) / deltax),
+                                ((((peaks$val - peaks$val_ypl) + (peaks$val - peaks$val_ymn)) / 2) / deltay))
+  } else {
+    print('No peaks to analyze for curvature.')
+    ssc <- NA
+  }
 
   return(ssc)
 }
@@ -234,7 +238,7 @@ s10z <- function(x) {
   top_peaks <- peaks[order(peaks$val, decreasing = TRUE)[1:5],]
   bottom_valleys <- valleys[order(valleys$val)[1:5],]
 
-  val <- (sum(top_peaks$val, na.rm = TRUE) + sum(abs(bottom_valleys$val, na.rm = TRUE))) / 5
+  val <- (sum(top_peaks$val, na.rm = TRUE) + sum(abs(bottom_valleys$val))) / 5
 
   return(val)
 }

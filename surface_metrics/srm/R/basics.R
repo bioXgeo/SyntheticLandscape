@@ -19,7 +19,7 @@ sa <- function(x) {
   zbar <- mean(z, na.rm = TRUE)
   N <- length(z)
 
-  val <- sum(abs(z - zbar)) / N
+  val <- sum(abs(z - zbar), na.rm = TRUE) / N
 
   return(val)
 }
@@ -74,7 +74,7 @@ ssk <- function(x, adj = TRUE) {
   s <- sd(z, na.rm = TRUE)
   N <- length(z)
 
-  val_unadj <- (sum((z - zbar) ^ 3) / N) / (s ^ 3)
+  val_unadj <- (sum((z - zbar) ^ 3, na.rm = TRUE) / N) / (s ^ 3)
 
   if (adj == TRUE) {
     val <- (sqrt((N * (N - 1))) / (N - 2)) * val_unadj # adjusted Fisher-Pearson coefficient of skewness
@@ -111,7 +111,7 @@ sku <- function(x, excess = TRUE) {
   s <- sd(z, na.rm = TRUE)
   N <- length(z)
 
-  val_unadj <- (sum((z - zbar) ^ 4) / N) / (s ^ 4)
+  val_unadj <- (sum((z - zbar) ^ 4, na.rm = TRUE) / N) / (s ^ 4)
 
   if (excess == TRUE) {
     val <- val_unadj - 3 # excess kurtosis (i.e., diff from normal distribution kurtosis)

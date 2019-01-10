@@ -42,7 +42,7 @@ fitplane <- function(x, order) {
   z <- getValues(x)
 
   # fit least squares polynomial with order = order
-  surfmod <- surf.ls(np = order, xcoord, ycoord, z)
+  surfmod <- surf.ls(np = order, xcoord[!is.na(z)], ycoord[!is.na(z)], z[!is.na(z)])
 
   # predict polynomial model over raster
   surfvals <- matrix(predict(surfmod, xcoord, ycoord), nrow = nrow(x), ncol = ncol(x), byrow = TRUE)

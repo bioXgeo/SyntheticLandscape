@@ -23,22 +23,58 @@
 #' # calculate flattened surface area
 #' flatsa(normforest)
 flatsa <- function(x) {
-
+  # In case the value area of the raster is an odd shape,
+  # calculate the surface area of the flattened raster in the same way
+  # as actual surface area
   # get dimensions
   N <- dim(x)[1] # rows
   M <- dim(x)[2] # cols
 
-  # z values, coordinates, and resolution (change in x, y)
-  z <- getValues(x)
+  # coordinates and resolution (change in x, y)
   deltax <- res(x)[1]
   deltay <- res(x)[2]
 
-  # normalize deltax, y
+  # create flat raster
+  z <- getValues(x)
+  z[!is.na(z)] <- 0
+  fakerast <- x
+  fakerast <- setValues(fakerast, z)
+
+  # get shifted z values of flat raster
+  z <- zshift(fakerast, xdist = 0, ydist = 0, xrm = 1, yrm = 1, scale = FALSE)
+  z_ypl <- zshift(fakerast, xdist = 0, ydist = 1, xrm = 1, scale = FALSE)
+  z_xpl <- zshift(fakerast, xdist = 1, ydist = 0, yrm = 1, scale = FALSE)
+  z_xplypl <- zshift(fakerast, xdist = 1, ydist = 1, scale = FALSE)
+
+  # normalize deltas
   divide <- mean(deltax, deltay)
   deltax <- deltax / divide
   deltay <- deltay / divide
 
-  sa <- ((N - 1) * (M - 1)) * deltax * deltay
+  # remove any outside NA values
+  z_ypl <- z_ypl[!is.na(z)]
+  z_xpl <- z_xpl[!is.na(z)]
+  z_xplypl <- z_xplypl[!is.na(z)]
+  z <- z[!is.na(z)]
+
+  # calculate area
+  akl1 <- ((1 / 2) *
+             (sqrt((deltay ^ 2) + ((z_ypl - z) ^ 2)) *
+                sqrt((deltax ^ 2) + ((z_xpl - z) ^ 2)))) +
+    ((1 / 2) *
+       (sqrt((deltay ^ 2) + ((z_xplypl - z_xpl) ^ 2)) *
+          sqrt((deltax ^ 2) + ((z_xplypl - z_ypl) ^ 2))))
+
+  akl2 <- ((1 / 2) *
+             (sqrt((deltay ^ 2) + ((z_ypl - z) ^ 2)) *
+                sqrt((deltax ^ 2) + ((z_xplypl - z_ypl) ^ 2)))) +
+    ((1 / 2) *
+       (sqrt((deltay ^ 2) + ((z_xplypl - z_xpl) ^ 2)) *
+          sqrt((deltax ^ 2) + ((z_xpl - z) ^ 2))))
+
+  akl <- (1 / 2) * (akl1 + akl2)
+
+  sa <- sum(akl, na.rm = TRUE)
 
   return(sa)
 }
@@ -52,6 +88,9 @@ flatsa <- function(x) {
 #' most satellite data have units where the x, y units do not equal the
 #' z units. The surface area represents the surface area of the sample
 #' area (N-1, M-1).
+#'
+#' Note that the raster object may have NA values around the edges,
+#' but should not have any missing values within the main area.
 #'
 #' @param x A raster object.
 #' @return A numeric value representing the scaled surface area of
@@ -67,23 +106,25 @@ surface_area <- function(x) {
   N <- dim(x)[1] # rows
   M <- dim(x)[2] # cols
 
-  # z values, coordinates, and resolution (change in x, y)
-  z <- getValues(x)
+  # coordinates and resolution (change in x, y)
   deltax <- res(x)[1]
   deltay <- res(x)[2]
 
-  # create matrix of centers to get surrounding from
-  zmat <- matrix(((z - min(z)) / (max(z) - min(z))), nrow = N, ncol = M, byrow = TRUE)
-
-  z <- zshift(zmat, xdist = 0, ydist = 0, xrm = 1, yrm = 1)
-  z_ypl <- zshift(zmat, xdist = 0, ydist = 1, xrm = 1)
-  z_xpl <- zshift(zmat, xdist = 1, ydist = 0, yrm = 1)
-  z_xplypl <- zshift(zmat, xdist = 1, ydist = 1)
+  z <- zshift(x, xdist = 0, ydist = 0, xrm = 1, yrm = 1, scale = TRUE)
+  z_ypl <- zshift(x, xdist = 0, ydist = 1, xrm = 1, scale = TRUE)
+  z_xpl <- zshift(x, xdist = 1, ydist = 0, yrm = 1, scale = TRUE)
+  z_xplypl <- zshift(x, xdist = 1, ydist = 1, scale = TRUE)
 
   # normalize deltas
   divide <- mean(deltax, deltay)
   deltax <- deltax / divide
   deltay <- deltay / divide
+
+  # remove any outside NA values
+  z_ypl <- z_ypl[!is.na(z)]
+  z_xpl <- z_xpl[!is.na(z)]
+  z_xplypl <- z_xplypl[!is.na(z)]
+  z <- z[!is.na(z)]
 
   # calculate area
   akl1 <- ((1 / 2) *

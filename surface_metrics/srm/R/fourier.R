@@ -26,8 +26,40 @@ std <- function(x, plot = FALSE) {
   M <- ncol(x)
   N <- nrow(x)
 
-  # get fourier transform
+  # get matrix of values
   zmat <- matrix(getValues(x), ncol = M, nrow = N, byrow = TRUE)
+
+  # if irregular non-na area, cut to biggest square possible
+  if (sum(is.na(zmat)) != 0) {
+    origin <- c(mean(coordinates(x)[, 1]), mean(coordinates(x)[, 2]))
+    potentials <- data.frame(xmin = rep(origin[1], floor(N / 2)),
+                             xmax = origin[1],
+                             ymin = origin[2],
+                             ymax = origin[2])
+    potentials$xmin <- origin[1] - (res(x)[1] * seq(1, round(N / 2)))
+    potentials$xmax <- origin[1] + (res(x)[1] * seq(1, round(N / 2)))
+    potentials$ymin <- origin[2] - (res(x)[2] * seq(1, round(N / 2)))
+    potentials$ymax <- origin[2] + (res(x)[2] * seq(1, round(N / 2)))
+
+    potentials$na <- sapply(seq(1, nrow(potentials)), FUN = function(i) {
+      xmin <-
+      newrast <- crop(x, extent(potentials$xmin[i], potentials$xmax[i], potentials$ymin[i], potentials$ymax[i]))
+      return(sum(is.na(getValues(newrast))))
+    })
+
+    max_dim <- potentials[max(which(potentials$na <= 0)),]
+
+    x <- crop(x, extent(max_dim$xmin, max_dim$xmax, max_dim$ymin, max_dim$ymax))
+
+    # get raster dimensions
+    M <- ncol(x)
+    N <- nrow(x)
+
+    # get matrix of values
+    zmat <- matrix(getValues(x), ncol = M, nrow = N, byrow = TRUE)
+  }
+
+  # get fourier transform
   # complex spectrum from fast fourier transform
   ft <- fft(zmat)
   ft_shift <- fftshift(ft)
@@ -104,8 +136,39 @@ srw <- function(x, plot = FALSE) {
   M <- ncol(x)
   N <- nrow(x)
 
-  # get fourier transform
+  # get matrix of values
   zmat <- matrix(getValues(x), ncol = M, nrow = N, byrow = TRUE)
+
+  # if irregular non-na area, cut to biggest square possible
+  if (sum(is.na(zmat)) != 0) {
+    origin <- c(mean(coordinates(x)[, 1]), mean(coordinates(x)[, 2]))
+    potentials <- data.frame(xmin = rep(origin[1], floor(N / 2)),
+                             xmax = origin[1],
+                             ymin = origin[2],
+                             ymax = origin[2])
+    potentials$xmin <- origin[1] - (res(x)[1] * seq(1, round(N / 2)))
+    potentials$xmax <- origin[1] + (res(x)[1] * seq(1, round(N / 2)))
+    potentials$ymin <- origin[2] - (res(x)[2] * seq(1, round(N / 2)))
+    potentials$ymax <- origin[2] + (res(x)[2] * seq(1, round(N / 2)))
+
+    potentials$na <- sapply(seq(1, nrow(potentials)), FUN = function(i) {
+      xmin <-
+        newrast <- crop(x, extent(potentials$xmin[i], potentials$xmax[i], potentials$ymin[i], potentials$ymax[i]))
+      return(sum(is.na(getValues(newrast))))
+    })
+
+    max_dim <- potentials[max(which(potentials$na <= 0)),]
+
+    x <- crop(x, extent(max_dim$xmin, max_dim$xmax, max_dim$ymin, max_dim$ymax))
+
+    # get raster dimensions
+    M <- ncol(x)
+    N <- nrow(x)
+
+    # get matrix of values
+    zmat <- matrix(getValues(x), ncol = M, nrow = N, byrow = TRUE)
+  }
+
   # complex spectrum from fast fourier transform
   ft <- fft(zmat)
   ft_shift <- fftshift(ft)
@@ -187,8 +250,39 @@ sfd <- function(x) {
   M <- ncol(x)
   N <- nrow(x)
 
-  # get fourier transform
+  # get matrix of values
   zmat <- matrix(getValues(x), ncol = M, nrow = N, byrow = TRUE)
+
+  # if irregular non-na area, cut to biggest square possible
+  if (sum(is.na(zmat)) != 0) {
+    origin <- c(mean(coordinates(x)[, 1]), mean(coordinates(x)[, 2]))
+    potentials <- data.frame(xmin = rep(origin[1], floor(N / 2)),
+                             xmax = origin[1],
+                             ymin = origin[2],
+                             ymax = origin[2])
+    potentials$xmin <- origin[1] - (res(x)[1] * seq(1, round(N / 2)))
+    potentials$xmax <- origin[1] + (res(x)[1] * seq(1, round(N / 2)))
+    potentials$ymin <- origin[2] - (res(x)[2] * seq(1, round(N / 2)))
+    potentials$ymax <- origin[2] + (res(x)[2] * seq(1, round(N / 2)))
+
+    potentials$na <- sapply(seq(1, nrow(potentials)), FUN = function(i) {
+      xmin <-
+        newrast <- crop(x, extent(potentials$xmin[i], potentials$xmax[i], potentials$ymin[i], potentials$ymax[i]))
+      return(sum(is.na(getValues(newrast))))
+    })
+
+    max_dim <- potentials[max(which(potentials$na <= 0)),]
+
+    x <- crop(x, extent(max_dim$xmin, max_dim$xmax, max_dim$ymin, max_dim$ymax))
+
+    # get raster dimensions
+    M <- ncol(x)
+    N <- nrow(x)
+
+    # get matrix of values
+    zmat <- matrix(getValues(x), ncol = M, nrow = N, byrow = TRUE)
+  }
+
   # complex spectrum from fast fourier transform
   ft <- fft(zmat)
   ft_shift <- fftshift(ft)
