@@ -106,7 +106,7 @@ find_flat <- function(x, perc = 0.4) {
   # find 40% of curve with least decline
   # use symmetric difference quotient to estimate the derivative at evenly spaced points
   # then find 40% consecutive section with lowest mean slope
-  even_x <- seq(0, 1, length.out = 100000)
+  even_x <- seq(0, 1, length.out = 10000)
   even_y <- (1 - quantile(f, probs = even_x))
   forty_length <- perc * length(even_x)
   h <- 0.001
