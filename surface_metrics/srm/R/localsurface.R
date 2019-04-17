@@ -217,6 +217,20 @@ ssc <- function(x) {
 }
 
 # summit density = number of local peaks per area
+
+#' Summit density.
+#'
+#' Calculates the summit density of a raster. Summit density is the number of local
+#' peaks per unit area.
+#'
+#' @param x A raster object.
+#' @return A numeric value representing the summit density.
+#' @examples
+#' # import raster image
+#' data(normforest)
+#'
+#' # calculate summit density.
+#' Sds <- sds(normforest)
 sds <- function(x) {
   M <- nrow(x)
   N <- ncol(x)
