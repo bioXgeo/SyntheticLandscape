@@ -22,6 +22,9 @@ to between 0 and 1 to best match their units. This is done because
 most satellite data have units where the x, y units do not equal the
 z units. The surface area represents the surface area of the sample
 area (N-1, M-1).
+
+Note that the raster object may have NA values around the edges,
+but should not have any missing values within the main area.
 }
 \examples{
 # import raster image

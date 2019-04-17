@@ -228,8 +228,19 @@ sds <- function(x) {
   return(val)
 }
 
-# ten-point height = avg. height above mean surface for five highest local maxima plus avg.
-# height below for five lowest local minima
+#' Ten-point height.
+#'
+#' Calculates the average height abover the mean surface for the five highest local maxima
+#' plus the average height below the mean surface for the five lowest local minima.
+#'
+#' @param x An n x n raster object.
+#' @return A numeric value representing the ten-point height.
+#' @examples
+#' # import raster image
+#' data(normforest)
+#'
+#' # calculate ten-point height.
+#' S10z <- s10z(normforest)
 s10z <- function(x) {
   peaks <- findpeaks(x)
   valleys <- findvalleys(x)
