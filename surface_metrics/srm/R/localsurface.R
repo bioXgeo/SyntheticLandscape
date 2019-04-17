@@ -249,7 +249,7 @@ s10z <- function(x) {
   top_peaks <- peaks[order(peaks$val, decreasing = TRUE)[1:5],]
   bottom_valleys <- valleys[order(valleys$val)[1:5],]
 
-  val <- (sum(top_peaks$val, na.rm = TRUE) + sum(abs(bottom_valleys$val))) / 5
+  val <- (sum(top_peaks$val, na.rm = TRUE) + sum(abs(bottom_valleys$val), na.rm = TRUE)) / 5
 
   return(val)
 }
