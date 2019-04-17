@@ -93,9 +93,15 @@ zshift <- function(r, xdist = 0, ydist = 0, xrm, yrm, scale = FALSE) {
     rm_inds <- c(rm_inds, rm_indsy)
   }
 
-  z <- z[-rm_inds]
-  rows <- rows[-rm_inds]
-  cols <- cols[-rm_inds]
+  if (length(rm_inds) < 1) {
+    z <- z
+    rows <- rows
+    cols <- cols
+  } else {
+    z <- z[-rm_inds]
+    rows <- rows[-rm_inds]
+    cols <- cols[-rm_inds]
+  }
 
   yshift <- rows + ydist
   xshift <- cols + xdist

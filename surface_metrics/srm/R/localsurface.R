@@ -170,6 +170,10 @@ ssc <- function(x) {
   deltax <- res(x)[1] / mean(res(x)[1], res(x)[2])
   deltay <- res(x)[2] / mean(res(x)[1], res(x)[2])
 
+  # zmat
+  zmat <- zshift(x, xdist = 0, ydist = 0, scale = TRUE)
+  zmat <- matrix(zmat, nrow = nrow(x), ncol = ncol(x), byrow = TRUE)
+
   # number of peaks
   peaks <- findpeaks(x)
   n <- nrow(peaks)
@@ -190,7 +194,7 @@ ssc <- function(x) {
   z_ymn <- zshift(x, xdist = 0, ydist = -1, scale = TRUE)
   z_ymn <- matrix(z_ymn, nrow = nrow(x), ncol = ncol(x))
 
-  if (nrow(peaks) != 0) {
+  if (n != 0) {
     # get z_xpl, z_ypl at peaks (add to df)
     peaks$val_xpl <- unlist(lapply(seq(1, nrow(peaks)),
                                    FUN = function(i) z_xpl[peaks$row[i], peaks$col[i]]))
