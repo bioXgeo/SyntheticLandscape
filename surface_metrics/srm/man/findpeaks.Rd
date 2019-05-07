@@ -7,7 +7,7 @@
 findpeaks(x)
 }
 \arguments{
-\item{x}{An n x n raster object.}
+\item{x}{A raster object.}
 }
 \value{
 A dataframe of local peak locations (\code{x, y}) and

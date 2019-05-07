@@ -7,7 +7,7 @@
 ssc(x)
 }
 \arguments{
-\item{x}{An n x n raster object.}
+\item{x}{A raster object.}
 }
 \value{
 A numeric value representing the average curvature of

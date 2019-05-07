@@ -11,7 +11,7 @@
 #' all 8 surrounding pixels have lower values, and the center pixel
 #' has a positive value.
 #'
-#' @param x An n x n raster object.
+#' @param x A raster object.
 #' @return A dataframe of local peak locations (\code{x, y}) and
 #'   values (\code{val}). The raster location index (\code{ind}),
 #'   row (\code{row}), and column (\code{col}) are also listed.
@@ -80,7 +80,7 @@ findpeaks <- function(x) {
 #' all 8 surrounding pixels have higher values, and the center pixel
 #' has a negative value.
 #'
-#' @param x An n x n raster object.
+#' @param x A raster object.
 #' @return A dataframe of local valley locations (\code{x, y}) and
 #'   values (\code{val}). The raster location index (\code{ind}),
 #'   row (\code{row}), and column (\code{col}) are also listed.
@@ -153,7 +153,7 @@ findvalleys <- function(x) {
 #' curvature is the average principle curvature of local maximas
 #' on the surface.
 #'
-#' @param x An n x n raster object.
+#' @param x A raster object.
 #' @return A numeric value representing the average curvature of
 #'   surface peaks.
 #' @examples
@@ -251,7 +251,7 @@ sds <- function(x) {
 #' Calculates the average height abover the mean surface for the five highest local maxima
 #' plus the average height below the mean surface for the five lowest local minima.
 #'
-#' @param x An n x n raster object.
+#' @param x A raster object.
 #' @return A numeric value representing the ten-point height.
 #' @examples
 #' # import raster image

@@ -4,7 +4,7 @@
 #' direction index of the Fourier spectrum image calculated
 #' from a raster image (see Kedron et al. 2018).
 #'
-#' @param x An n x n raster image.
+#' @param x A raster.
 #' @param plot Logical. If \code{TRUE}, returns a plot of the
 #'   amplitude spectrum with lines showing directions in which
 #'   amplitude is summed for the Std and Stdi calculations.
@@ -112,7 +112,7 @@ std <- function(x, plot = FALSE) {
 #' index, and mean half wavelength of the radial Fourier spectrum.
 #' See Kedron et al. (2018) for more detailed description.
 #'
-#' @param x An n x n raster image.
+#' @param x A raster.
 #' @param plot Logical. If \code{TRUE}, returns a plot of the
 #'   amplitude spectrum with lines showing the radii at which
 #'   Srw, Srwi, and Shw are calculated.
@@ -233,7 +233,7 @@ srw <- function(x, plot = FALSE) {
 #' to R, of the Matlab function 'fdsurfft' version 1.0.0.0
 #' developed by Jianbo Zhang.
 #'
-#' @param x An n x n raster image.
+#' @param x A raster.
 #' @return A numeric value representing the 2D fractal dimension of
 #'   the image.
 #' @examples

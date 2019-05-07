@@ -7,7 +7,7 @@
 srw(x, plot = FALSE)
 }
 \arguments{
-\item{x}{An n x n raster image.}
+\item{x}{A raster.}
 
 \item{plot}{Logical. If \code{TRUE}, returns a plot of the
 amplitude spectrum with lines showing the radii at which

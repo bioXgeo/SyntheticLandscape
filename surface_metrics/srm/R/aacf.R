@@ -57,8 +57,8 @@ aacf <- function(x) {
   }
 
   # create windows to prevent leakage
-  wc <- hanning(M)
-  wr <- hanning(N)
+  wc <- hanning.window(M)
+  wr <- hanning.window(N)
 
   # create matrix of weights
   w <- meshgrid(wc, wr)
@@ -93,8 +93,7 @@ aacf <- function(x) {
 #' values (e.g., 0.2) of the areal autocorrelation function (AACF). All 180
 #' degrees from the origin of the AACF image are considered for the calculation.
 #'
-#' @param aacf An n x n raster of the areal autocorrelation function,
-#'   produced by the function \code{aacf(x)}.
+#' @param x A raster.
 #' @param threshold A numeric vector containing values between 0 and 1. Indicates
 #'   the autocorrelation values to which the rates of decline are measured.
 #' @param plot Logical. Defaults to \code{FALSE}. If \code{TRUE}, the AACF and
@@ -117,15 +116,18 @@ aacf <- function(x) {
 #'
 #' # calculate Scl20, the minimum distance to an autocorrelation value of 0.2 in the AACF
 #' Scl20 <- sclvals[[1]]
-scl <- function(aacf, threshold = c(0.20, 1 / exp(1)), plot = FALSE) {
+scl <- function(x, threshold = c(0.20, 1 / exp(1)), plot = FALSE) {
+
+  # get aacf img
+  aacfimg <- aacf(x)[[2]]
 
   # take amplitude image, cut in half (y direction)
-  half_dist <- (ymax(x) - ymin(x)) / 2
-  ymin <- ymax(x) - half_dist
-  x <- crop(x, c(xmin(x), xmax(x), ymin, ymax(x)))
+  half_dist <- (ymax(aacfimg) - ymin(aacfimg)) / 2
+  ymin <- ymax(aacfimg) - half_dist
+  aacfimg <- crop(aacfimg, c(xmin(aacfimg), xmax(aacfimg), ymin, ymax(aacfimg)))
 
   # get origin of image (actually bottom center)
-  origin <- c(mean(coordinates(x)[, 1]), ymin(x))
+  origin <- c(mean(coordinates(aacfimg)[, 1]), ymin(aacfimg))
 
   ### line calculations are taken from the plotrix function draw.radial.line
   # calculate rays extending from origin
@@ -138,29 +140,29 @@ scl <- function(aacf, threshold = c(0.20, 1 / exp(1)), plot = FALSE) {
   linelist <- lapply(seq(1, length(linex), 2),
                      FUN = function(i) Lines(Line(cbind(linex[i:(i + 1)], liney[i:(i + 1)])),
                                              ID = paste('l', i, sep = '')))
-  lines <- SpatialLines(linelist, proj4string = CRS(proj4string(x)))
+  lines <- SpatialLines(linelist, proj4string = CRS(proj4string(aacfimg)))
 
   # plot and calculate amplitude sums along rays
   if(plot == TRUE) {
-    plot(x)
+    plot(aacfimg)
     lines(lines)
   }
 
   # get values for all points along line
   Aalpha <- list()
   for (i in 1:length(lines)) {
-    Aalpha[[i]] <- extract(x, lines[i], along = TRUE, cellnumbers = TRUE)
+    Aalpha[[i]] <- extract(aacfimg, lines[i], along = TRUE, cellnumbers = TRUE)
   }
 
   # each line has length = half_dist, with each point approx. 1 pixel apart
   fast_dists <- list()
   for (i in 1:length(threshold)) {
-    fast_dists[[i]] <- suppressWarnings(mindist(threshold[i], Aalpha, x))
+    fast_dists[[i]] <- suppressWarnings(mindist(threshold[i], Aalpha, aacfimg))
   }
 
   slow_dists <- list()
   for (i in 1:length(threshold)) {
-    slow_dists[[i]] <- suppressWarnings(maxdist(threshold[i], Aalpha, x))
+    slow_dists[[i]] <- suppressWarnings(maxdist(threshold[i], Aalpha, aacfimg))
   }
 
   return(c(fast_dists, slow_dists))
@@ -290,9 +292,7 @@ maxdist <- function(threshold, Aalpha, aacfimg) {
 #' # autocorrelation value of 0.2 in the AACF
 #' Str20 <- strvals[[1]]
 str <- function(x, threshold = c(0.20, 1 / exp(1))) {
-  aacf_img <- aacf(x)[[2]]
-
-  sclvals <- scl(aacf = aacf_img, threshold = threshold, plot = FALSE)
+  sclvals <- scl(x, threshold = threshold, plot = FALSE)
 
   vals <- list()
   # because the list contains both min/max vals, need double the length

@@ -7,7 +7,7 @@
 sfd(x)
 }
 \arguments{
-\item{x}{An n x n raster image.}
+\item{x}{A raster.}
 }
 \value{
 A numeric value representing the 2D fractal dimension of

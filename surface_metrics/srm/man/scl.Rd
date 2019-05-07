@@ -4,11 +4,10 @@
 \alias{scl}
 \title{Calculate correlation length.}
 \usage{
-scl(aacf, threshold = c(0.2, 1/exp(1)), plot = FALSE)
+scl(x, threshold = c(0.2, 1/exp(1)), plot = FALSE)
 }
 \arguments{
-\item{aacf}{An n x n raster of the areal autocorrelation function,
-produced by the function \code{aacf(x)}.}
+\item{x}{A raster.}
 
 \item{threshold}{A numeric vector containing values between 0 and 1. Indicates
 the autocorrelation values to which the rates of decline are measured.}
