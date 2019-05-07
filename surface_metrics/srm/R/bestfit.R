@@ -1,15 +1,37 @@
 # functions to find the best fit line for forty percent of slope with lowest slope
+
+#' Determines the slopes along a the bearing area curve.
+#'
+#' Calculates the slopes along the bearing area curve
+#' of a raster. Slopes are determined at points x,
+#' from point x - h to x + h.
+#'
+#' @param x A raster.
+#' @param h Spacing before and after each point.
+#' 2h is the distance over which slopes are calculated.
+#' @param f Bearing area function as calculated with
+#' bearing_area.
+#' @return A dataframe with the slope for each segment
+#' with centerpoint x.
+#' @examples
+#' # import raster image
+#' data(normforest)
+#'
+#' # find the slopes along the bearing area curve
+#' ba <- bearing_area(normforest)
+#' x <- seq(0, 1, length.out = 100000)
+#' slopes <- slopecalc(x = x, h = 0.01, f = ba)
 slopecalc <- function(x, h, f) {
   xplus <- x + h
   xminus <- x - h
   x <- x
 
-  # figure out ends
+  # figure out ends (need distance on both sides of x)
   space <- 1 / length(x)
   end_length <- h / space
   if (end_length < 1) { end_length = 1}
-  begin <- 1 + end_length
-  end <- length(x) - end_length
+  begin <- ceiling(1 + end_length)
+  end <- floor(length(x) - end_length)
   begin1 <- begin - 1
   end1 <- end + 1
 
@@ -31,10 +53,37 @@ slopecalc <- function(x, h, f) {
 }
 
 # calculate averages for each 40% segment
-slopemeans <- function(slope_data, segment_perc = 0.4) {
-  x <- slope_data$x
-  slope <- slope_data$slope
-  length <- length(x) * segment_perc
+#' Determines the average slope along larger segments of
+#' the bearing area curve of a raster.
+#'
+#' Calculates the average slope over every segment
+#' of a specified percentage length of the total bearing
+#' area curve.
+#'
+#' @param slopes A dataframe containing all slopes along
+#' the bearing area curve, calculated using the slopecalc
+#' function.
+#' @param l Percentage of the curve over which to calculate
+#' mean slope.
+#' @return A dataframe with the average slope over segments
+#' beginning at specified x locations along the bearing area
+#' curve. 'slope' represents the mean slope over the segment,
+#' 'xstart' is the beginning x location of the segment, and
+#' 'xend' is the concluding x location of the segment.
+#' @examples
+#' # import raster image
+#' data(normforest)
+#'
+#' # find the average slope of segments of the bearing area
+#' # curve.
+#' ba <- bearing_area(normforest)
+#' x <- seq(0, 1, length.out = 100000)
+#' slopes <- slopecalc(x = x, h = 0.01, f = ba)
+#' slopes_forty <- slopemeans(slopes = slopes, l = 0.4)
+slopemeans <- function(slopes, l = 0.4) {
+  x <- slopes$x
+  slope <- slopes$slope
+  length <- length(x) * l
   end_ind <- length(x) - length
   begin_ind <- 1 + length
   xstart <- x[1:end_ind]
