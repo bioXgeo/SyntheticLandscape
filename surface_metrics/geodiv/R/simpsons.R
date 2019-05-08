@@ -1,3 +1,4 @@
+#' @export
 #' Area above the bearing area curve.
 #'
 #' Calculates the area above the bearing area curve from
@@ -36,7 +37,7 @@ area_above <- function(f, a, b, n = 100) {
 
   h <- (b - a) / n # sub-interval width
   x <- seq(a, b, by = h)
-  y <- (1 - quantile(f, probs = x)) # get y-values of inverse cdf function
+  y <- (1 - stats::quantile(f, probs = x)) # get y-values of inverse cdf function
 
   # if y is negative, shift the whole thing up so that min(y) = 0
   if (sum(y < 0) >= 1) {
@@ -54,6 +55,7 @@ area_above <- function(f, a, b, n = 100) {
   return(area_above)
 }
 
+#' @export
 #' Simpson's rule empirical area under a curve.
 #'
 #' Calculates the area below a curve from
@@ -87,7 +89,7 @@ simpsons <- function(f, a, b, n = 100) {
   x <- seq(a, b, by = h)
 
   # get y-values of inverse cdf function
-  y <- (1 - quantile(f, probs = x))
+  y <- (1 - stats::quantile(f, probs = x))
 
   # if y is negative, shift the whole thing up so that min(y) = 0
   if (sum(y < 0) >= 1) {

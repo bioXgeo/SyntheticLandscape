@@ -1,3 +1,4 @@
+#' @export
 #' Calculates the rotated Bearing Area curve.
 #'
 #' Finds a rotated version of the Bearing Area (Abbott-Firestone)
@@ -31,6 +32,7 @@ bearing_area <- function(x) {
   return(f)
 }
 
+#' @export
 #' Plots the Bearing Area curve.
 #'
 #' Calculates and plots the Bearing Area curve for a raster
@@ -72,6 +74,7 @@ plot_ba_curve <- function(x, divisions = FALSE) {
   }
 }
 
+#' @export
 #' Finds the flattest part of the Bearing Area curve.
 #'
 #' Locates the flattest x percentage of the Bearing Area
@@ -107,7 +110,7 @@ find_flat <- function(x, perc = 0.4) {
   # use symmetric difference quotient to estimate the derivative at evenly spaced points
   # then find 40% consecutive section with lowest mean slope
   even_x <- seq(0, 1, length.out = 10000)
-  even_y <- (1 - quantile(f, probs = even_x))
+  even_y <- (1 - stats::quantile(f, probs = even_x))
   forty_length <- perc * length(even_x)
   h <- 0.001
   slopes <- slopecalc(even_x, h, f = f) # calculate slope at every point
@@ -122,8 +125,8 @@ find_flat <- function(x, perc = 0.4) {
   ls_line <- lm(y ~ x, data = lm_data)
 
   # get value of ls line between 0 and 1
-  pred_data <- remove_rownames(data.frame(x = even_x, y = even_y))
-  pred_data$y <- predict(ls_line, newdata = pred_data)
+  pred_data <- tibble::remove_rownames(data.frame(x = even_x, y = even_y))
+  pred_data$y <- stats::predict(ls_line, newdata = pred_data)
 
   # what is the ls line y-value at x = 0, x = 1?
   ls_int_high <- pred_data$y[pred_data$x == 0]
@@ -136,6 +139,7 @@ find_flat <- function(x, perc = 0.4) {
   return(list(ls_line, pred_data, ls_int_high, ls_int_low, Smr1, Smr2))
 }
 
+#' @export
 #' Value of the bearing area curve at a specified value.
 #'
 #' Determines the value of the bearing area curve for a
@@ -155,11 +159,12 @@ find_flat <- function(x, perc = 0.4) {
 height_ba <- function(x, xval) {
   f <- bearing_area(x)
 
-  val <- (1 - quantile(f, probs = c(xval))[[1]])
+  val <- (1 - stats::quantile(f, probs = c(xval))[[1]])
 
   return(val)
 }
 
+#' @export
 #' Height intervals of the bearing area curve for a raster.
 #'
 #' Determines the height interval (height distance) for
@@ -190,6 +195,7 @@ sdc <- function(x, low, high) {
   return(val)
 }
 
+#' @export
 #' Surface bearing index of a raster.
 #'
 #' Determines the surface bearing index (Sbi), calculated as the ratio
@@ -213,6 +219,7 @@ sbi <- function(x) {
   return(val)
 }
 
+#' @export
 #' Valley fluid retention index of a raster.
 #'
 #' Determines the valley fluid retention index (Svi). This
@@ -237,6 +244,7 @@ svi <- function(x) {
   return(val)
 }
 
+#' @export
 #' Core fluid retention index of a raster.
 #'
 #' Determines the core fluid retention index (Sci). This
@@ -265,6 +273,7 @@ sci <- function(x) {
   return(val)
 }
 
+#' @export
 #' Core roughness depth of a raster.
 #'
 #' Determines the core roughness depth (Sk), the
@@ -293,6 +302,7 @@ sk <- function(x) {
   return(val)
 }
 
+#' @export
 #' Reduced valley depth of a raster.
 #'
 #' Determines the reduced valley depth (Svk), the
@@ -319,11 +329,12 @@ svk <- function(x) {
 
   smr2 <- line_info[[6]]
 
-  val <- abs((1 - quantile(f, probs = 1)) - (1 - quantile(f, probs = smr2)))[[1]]
+  val <- abs((1 - stats::quantile(f, probs = 1)) - (1 - stats::quantile(f, probs = smr2)))[[1]]
 
   return(val)
 }
 
+#' @export
 #' Reduced peak height of a raster.
 #'
 #' Determines the reduced peak height (Spk), the
@@ -350,7 +361,7 @@ spk <- function(x) {
 
   smr1 <- line_info[[5]]
 
-  val <- abs((1 - quantile(f, probs = 0)) - (1 - quantile(f, probs = smr1)))[[1]]
+  val <- abs((1 - stats::quantile(f, probs = 0)) - (1 - stats::quantile(f, probs = smr1)))[[1]]
 
   return(val)
 }

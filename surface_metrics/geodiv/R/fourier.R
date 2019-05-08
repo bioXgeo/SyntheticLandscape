@@ -1,3 +1,4 @@
+#' @export
 #' Texture direction metrics.
 #'
 #' Calculates the angle of dominating texture and the texture
@@ -85,9 +86,9 @@ std <- function(x, plot = FALSE) {
   linex <- unlist(lapply(seq(1, length(alpha)), function(x) origin[1] + px * cos(alpha[x])))
   liney <- unlist(lapply(seq(1, length(alpha)), function(x) origin[2] + px * sin(alpha[x])))
   linelist <- lapply(seq(1, length(linex), 2),
-                     FUN = function(i) Lines(Line(cbind(linex[i:(i + 1)], liney[i:(i + 1)])),
+                     FUN = function(i) sp::Lines(sp::Line(cbind(linex[i:(i + 1)], liney[i:(i + 1)])),
                                              ID = paste('l', i, sep = '')))
-  lines <- SpatialLines(linelist, proj4string = CRS(proj4string(amp_img)))
+  lines <- sp::SpatialLines(linelist, proj4string = sp::CRS(proj4string(amp_img)))
 
   # plot and calculate amplitude sums along rays
   if(plot == TRUE) {
@@ -106,6 +107,7 @@ std <- function(x, plot = FALSE) {
   return(list(std, stdi))
 }
 
+#' @export
 #' Radial wavelength metrics.
 #'
 #' Calculates the dominant radial wavelength, radial wavelength
@@ -193,8 +195,8 @@ srw <- function(x, plot = FALSE) {
   linex <- unlist(lapply(seq(1, length(radius)), function(x) origin[1] + radius[x] * cos(angles)))
   liney <- unlist(lapply(seq(1, length(radius)), function(x) origin[2] + radius[x] * sin(angles)))
   linelist <- lapply(seq(1, length(linex), 100),
-                     FUN = function(i) Lines(list(Line(cbind(linex[i:(i + 99)], liney[i:(i + 99)]))), ID = paste('p', i, sep = '')))
-  lines <- SpatialLines(linelist, proj4string = CRS(proj4string(amp_img)))
+                     FUN = function(i) sp::Lines(list(sp::Line(cbind(linex[i:(i + 99)], liney[i:(i + 99)]))), ID = paste('p', i, sep = '')))
+  lines <- sp::SpatialLines(linelist, proj4string = sp::CRS(proj4string(amp_img)))
 
   # plot and get amplitude sums within each radius
   if (plot == TRUE){
@@ -226,6 +228,7 @@ srw <- function(x, plot = FALSE) {
   return(list(Srw, Srwi, Shw))
 }
 
+#' @export
 #' Calculates the fractal dimension.
 #'
 #' Calculates the 2D fractal dimension of a raster using the
@@ -315,14 +318,14 @@ sfd <- function(x) {
 
   # calculate power spectrum
   mag <- Re(log(fim * fim + 10 ^ (-6)))
-  sumBrite <- zeros(num_dir, num_rad) # accumulation magnitude for each direction and radius
-  nCount <- zeros(num_dir, num_rad) # number of magnitude
-  radius <- zeros(2 * num_rad, 1) # accumulation magnitude for all directions
-  radCount <- zeros(2 * num_rad, 1) # number of magnitude for all directions
+  sumBrite <- pracma::zeros(num_dir, num_rad) # accumulation magnitude for each direction and radius
+  nCount <- pracma::zeros(num_dir, num_rad) # number of magnitude
+  radius <- pracma::zeros(2 * num_rad, 1) # accumulation magnitude for all directions
+  radCount <- pracma::zeros(2 * num_rad, 1) # number of magnitude for all directions
 
   # Compute phase image and phase histogram
-  phaseim <- zeros(M, N)
-  phase <- zeros(180)
+  phaseim <- pracma::zeros(M, N)
+  phase <- phonTools::zeros(180)
   for (j  in 1:M) {
     for (i in 1:N) {
       realv <- Re(fim[j, i])
@@ -358,7 +361,7 @@ sfd <- function(x) {
         rho <- log(sqrt(y2 + xval * xval))
         if (rho > 0 & rho <= rmax) {
           mval <- mag[j, i]
-          temp <- yval /xval
+          temp <- yval / xval
           theta <- atan(temp)
           if (xval < 0) {
             theta <- theta + pi

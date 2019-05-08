@@ -2,6 +2,7 @@
 # from https://www.ntmdt-si.ru/data/media/files/manuals/image_analisys_p9_nov12.e.pdf
 # diagram for actual equations used: file:///home/annie/Downloads/9783642364570-c2%20(1).pdf, page 17/30
 
+#' @export
 #' Surface area of a flattened raster.
 #'
 #' Calculates the surface area of a flat raster with the
@@ -79,6 +80,7 @@ flatsa <- function(x) {
   return(sa)
 }
 
+#' @export
 #' Surface area of a raster.
 #'
 #' Calculates the scaled surface area of a raster.
@@ -148,6 +150,7 @@ surface_area <- function(x) {
   return(sa)
 }
 
+#' @export
 #' Surface area ratio.
 #'
 #' Calculates the surface area ratio of a raster. This is the

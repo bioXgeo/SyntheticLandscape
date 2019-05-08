@@ -1,3 +1,4 @@
+#' @export
 #' Offset raster values.
 #'
 #' Calculates a matrix of raster values with a negative

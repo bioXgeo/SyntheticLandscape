@@ -5,6 +5,7 @@
 # local maximum = points where all 8 surrounding points are lower & above zero
 
 
+#' @export
 #' Find local peaks.
 #'
 #' Locates local peaks on a raster. A peak is defined as any pixel where
@@ -74,6 +75,7 @@ findpeaks <- function(x) {
   return(peaks)
 }
 
+#' @export
 #' Find local valleys.
 #'
 #' Locates local valleys on a raster. A valley is defined as any pixel where
@@ -147,6 +149,7 @@ findvalleys <- function(x) {
   return(valleys)
 }
 
+#' @export
 #' Mean summit curvature.
 #'
 #' Calculates the mean summit curvature of a raster. Mean summit
@@ -220,8 +223,7 @@ ssc <- function(x) {
   return(ssc)
 }
 
-# summit density = number of local peaks per area
-
+#' @export
 #' Summit density.
 #'
 #' Calculates the summit density of a raster. Summit density is the number of local
@@ -246,6 +248,7 @@ sds <- function(x) {
   return(val)
 }
 
+#' @export
 #' Ten-point height.
 #'
 #' Calculates the average height abover the mean surface for the five highest local maxima

@@ -1,3 +1,4 @@
+#' @export
 #' Fourier transform shift.
 #'
 #' This function was created from code posted by rayryeng at:

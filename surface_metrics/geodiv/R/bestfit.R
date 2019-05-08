@@ -1,5 +1,6 @@
 # functions to find the best fit line for forty percent of slope with lowest slope
 
+#' @export
 #' Determines the slopes along a the bearing area curve.
 #'
 #' Calculates the slopes along the bearing area curve
@@ -37,14 +38,14 @@ slopecalc <- function(x, h, f) {
 
   fxh_pos <- seq(1, length(x))
   fxh_neg <- seq(1, length(x))
-  fxh_pos[1:begin1] <- (1 - quantile(f, probs = xplus[1:begin1]))
-  fxh_neg[1:begin1] <- (1 - quantile(f, probs = x[1:begin1]))
+  fxh_pos[1:begin1] <- (1 - stats::quantile(f, probs = xplus[1:begin1]))
+  fxh_neg[1:begin1] <- (1 - stats::quantile(f, probs = x[1:begin1]))
   # variation on newton's difference quotient at far end
-  fxh_pos[end1:length(x)] <- (1 - quantile(f, probs = x[end1:length(x)]))
-  fxh_neg[end1:length(x)] <- (1 - quantile(f, probs = xminus[end1:length(x)]))
+  fxh_pos[end1:length(x)] <- (1 - stats::quantile(f, probs = x[end1:length(x)]))
+  fxh_neg[end1:length(x)] <- (1 - stats::quantile(f, probs = xminus[end1:length(x)]))
   # symmetric difference quotient everywhere else (99800 points)
-  fxh_pos[begin:end] <- (1 - quantile(f, probs = xplus[begin:end]))
-  fxh_neg[begin:end] <- (1 - quantile(f, probs = xminus[begin:end]))
+  fxh_pos[begin:end] <- (1 - stats::quantile(f, probs = xplus[begin:end]))
+  fxh_neg[begin:end] <- (1 - stats::quantile(f, probs = xminus[begin:end]))
 
   diff_quo <- (fxh_pos - fxh_neg) / (2 * h)
   slopes <- data.frame(slope = diff_quo, x = x)
@@ -52,7 +53,7 @@ slopecalc <- function(x, h, f) {
   return(slopes)
 }
 
-# calculate averages for each 40% segment
+#' @export
 #' Determines the average slope along larger segments of
 #' the bearing area curve of a raster.
 #'

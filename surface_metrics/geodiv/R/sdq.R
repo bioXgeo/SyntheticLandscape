@@ -3,6 +3,7 @@
 # both functions from the equations here:
 # https://www.ntmdt-si.ru/data/media/files/manuals/image_analisys_p9_nov12.e.pdf
 
+#' @export
 #' Root mean square slope of surface.
 #'
 #' Calculates the root mean square slope of a raster
@@ -38,6 +39,7 @@ sdq <- function(x) {
   return(sdq)
 }
 
+#' @export
 #' Root area mean square slope of surface.
 #'
 #' Calculates the area root mean square slope of a raster
@@ -55,13 +57,14 @@ sdq <- function(x) {
 #' # calculate area root mean square slope
 #' Sdq6 <- sdq6(normforest)
 sdq6 <- function(x) {
-  # get dimensions
-  N <- dim(x)[1] # rows
-  M <- dim(x)[2] # cols
 
   # get resolution
   deltax <- res(x)[1]
   deltay <- res(x)[2]
+
+  # get dimensions
+  N <- dim(x)[1] # rows
+  M <- dim(x)[2] # cols
 
   # calculate offset vectors (shifts xdist, ydist, then removes rows xrm, yrm)
   z_xps1 <- zshift(x, xdist = 1, ydist = 0, xrm = c(-3, 3), yrm = c(-3, 3))
@@ -79,7 +82,7 @@ sdq6 <- function(x) {
   z_ymn2 <- zshift(x, xdist = 0, ydist = -2, xrm = c(-3, 3), yrm = c(-3, 3))
   z_ymn3 <- zshift(x, xdist = 0, ydist = -3, xrm = c(-3, 3), yrm = c(-3, 3))
 
-  # calculate two-point slope
+  # calculate two-point slope (see https://www.ntmdt-si.ru/data/media/files/manuals/image_analisys_p9_nov12.e.pdf)
   pklx <- (1 / (60 * deltax)) * (z_xps3 - (9 * z_xps2) + (45 * z_xps1) - (45 * z_xmn1) -
                                    (9 * z_xps2) - z_xmn3)
   pkly <- (1 / (60 * deltay)) * (z_yps3 - (9 * z_yps2) + (45 * z_yps1) - (45 * z_ymn1) -

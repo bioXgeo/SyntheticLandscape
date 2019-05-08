@@ -4,7 +4,7 @@
 #'
 #' @param x Numeric. Radian value(s).
 #' @return Numeric of degree value(s).
-rad2deg <- function(x) {(x * 180) / (pi)}
+.rad2deg <- function(x) {(x * 180) / (pi)}
 
 #' Degree to radian conversion.
 #'
@@ -12,8 +12,9 @@ rad2deg <- function(x) {(x * 180) / (pi)}
 #'
 #' @param x Numeric. Degree value(s).
 #' @return Numeric of degree value(s).
-deg2rad <- function(x) {(x * pi) / (180)}
+.deg2rad <- function(x) {(x * pi) / (180)}
 
+#' @export
 #' Calculate a least squares polynomial plane.
 #'
 #' Fits a polynomial plane of order \code{n} to a raster
@@ -42,7 +43,7 @@ fitplane <- function(x, order) {
   z <- getValues(x)
 
   # fit least squares polynomial with order = order
-  surfmod <- surf.ls(np = order, xcoord[!is.na(z)], ycoord[!is.na(z)], z[!is.na(z)])
+  surfmod <- spatial::surf.ls(np = order, xcoord[!is.na(z)], ycoord[!is.na(z)], z[!is.na(z)])
 
   # predict polynomial model over raster
   surfvals <- matrix(predict(surfmod, xcoord, ycoord), nrow = nrow(x), ncol = ncol(x), byrow = TRUE)
@@ -50,6 +51,7 @@ fitplane <- function(x, order) {
   return(surfvals)
 }
 
+#' @export
 #' Finds the best fit polynomial plane.
 #'
 #' Finds the best fit polynomial plane for a raster image. This
@@ -95,6 +97,7 @@ bestfitplane <- function(x) {
   return(bfx)
 }
 
+#' @export
 #' Removes the best fit polynomial plane from a raster.
 #'
 #' Finds the best fit polynomial plane for a raster image and
