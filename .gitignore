@@ -39,3 +39,4 @@ vignettes/*.pdf
 
 # Raw data for package
 /surface_metrics/geodiv/data-raw
+/surface_metrics/srm/data-raw
