@@ -20,6 +20,8 @@ function tests least squares polynomial fits with orders of
 fit is subtracted from the original image.
 }
 \examples{
+library(raster)
+
 # import raster image
 data(orforest)
 
@@ -27,5 +29,5 @@ data(orforest)
 poly <- bestfitplane(orforest)
 
 # plot the fit
-plot(x)
+plot(poly)
 }

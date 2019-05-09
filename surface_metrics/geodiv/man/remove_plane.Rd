@@ -22,6 +22,8 @@ than the plane and negative values where the actual value
 are lower than the plane.
 }
 \examples{
+library(raster)
+
 # import raster image
 data(orforest)
 

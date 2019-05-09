@@ -172,7 +172,7 @@ run_all <- function(r){
   cat('\n')
 
   cat('Sp: ', '\n')
-  sp <- sp(r)
+  sp <- sph(r)
   print(sp)
   cat('\n')
 
@@ -252,6 +252,8 @@ print(normforest)
 # run all functions
 run_all(normforest)
 
+sink()
+
 # test for another raster -------------------------------------------------
 
 rast <- raster('filename') # add file here
@@ -263,5 +265,9 @@ r <- remove_plane(rast)
 
 # run all functions
 run_all(r)
+
+# finally, run the devtools check -----------------------------------------
+
+devtools::check()
 
 sink()

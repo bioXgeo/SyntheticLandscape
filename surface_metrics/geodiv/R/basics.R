@@ -16,6 +16,8 @@
 #' roughness <- sa(normforest)
 #' @export
 sa <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+
   z <- getValues(x)
   zbar <- mean(z, na.rm = TRUE)
   N <- length(z)
@@ -44,6 +46,8 @@ sa <- function(x) {
 #' roughness <- sq(normforest)
 #' @export
 sq <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+
   z <- getValues(x)
 
   val <- sd(z, na.rm = TRUE)
@@ -72,6 +76,9 @@ sq <- function(x) {
 #' Ssk <- ssk(normforest, adj = TRUE)
 #' @export
 ssk <- function(x, adj = TRUE) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+  if(class(adj) != 'logical') {stop('adj argument must be TRUE/FALSE.')}
+
   z <- getValues(x)
   zbar <- mean(z, na.rm = TRUE)
   s <- sd(z, na.rm = TRUE)
@@ -110,6 +117,9 @@ ssk <- function(x, adj = TRUE) {
 #' Sku <- sku(normforest, excess = TRUE)
 #' @export
 sku <- function(x, excess = TRUE) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+  if(class(excess) != 'logical') {stop('excess argument must be TRUE/FALSE.')}
+
   z <- getValues(x)
   zbar <- mean(z, na.rm = TRUE)
   s <- sd(z, na.rm = TRUE)
@@ -142,6 +152,8 @@ sku <- function(x, excess = TRUE) {
 #' Sv <- sv(normforest)
 #' @export
 sv <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+
   z <- getValues(x)
 
   val <- abs(min(z, na.rm = TRUE))
@@ -152,7 +164,7 @@ sv <- function(x) {
 #' Calculates the maximum peak height of a surface raster.
 #'
 #' Finds the absolute value of the highest value in the
-#' landscape (maximum peak height; Sp) for a raster
+#' landscape (maximum peak height; Sph) for a raster
 #' representing a surface.
 #'
 #' @param x A raster.
@@ -162,9 +174,11 @@ sv <- function(x) {
 #' data(normforest)
 #'
 #' # find the maximum peak height
-#' Sp <- sp(normforest)
+#' Sph <- sph(normforest)
 #' @export
-sp <- function(x) {
+sph <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+
   z <- getValues(x)
 
   val <- abs(max(z, na.rm = TRUE))
@@ -188,6 +202,8 @@ sp <- function(x) {
 #' Smean <- smean(normforest)
 #' @export
 smean <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+
   z <- getValues(x)
 
   val <- mean(z[z > 0], na.rm = TRUE)

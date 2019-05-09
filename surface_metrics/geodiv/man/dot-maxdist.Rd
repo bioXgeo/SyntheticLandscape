@@ -14,7 +14,7 @@ the autocorrelation value to which the rates of decline are measured.}
 the AACF values along lines extending in multiple directions from the
 AACF origin (autocorrelation = 1).}
 
-\item{aacf}{An 0.5n x n raster of the areal autocorrelation function. This
+\item{aacfimg}{A raster of the areal autocorrelation function. This
 is the AACF raster split in two in terms of height.}
 }
 \value{

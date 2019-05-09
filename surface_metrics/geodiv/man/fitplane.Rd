@@ -20,6 +20,8 @@ Fits a polynomial plane of order \code{n} to a raster
 image.
 }
 \examples{
+library(raster)
+
 # import raster image
 data(orforest)
 

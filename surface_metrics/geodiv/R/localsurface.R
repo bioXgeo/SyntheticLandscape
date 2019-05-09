@@ -34,8 +34,8 @@ findpeaks <- function(x) {
 
   # center values, indices, and coordinates
   centers <- getValues(x)
-  xcoords <- coordinates(x)[, 1]
-  ycoords <- coordinates(x)[, 2]
+  xcoords <- sp::coordinates(x)[, 1]
+  ycoords <- sp::coordinates(x)[, 2]
 
   # create matrix of centers to get surrounding from
   zmat <- matrix(centers, nrow = N, ncol = M, byrow = TRUE)
@@ -108,8 +108,8 @@ findvalleys <- function(x) {
   # center values, indices, and coordinates
   centers <- getValues(x)
   ind <- seq(1, length(centers))
-  xcoords <- coordinates(x)[, 1]
-  ycoords <- coordinates(x)[, 2]
+  xcoords <- sp::coordinates(x)[, 1]
+  ycoords <- sp::coordinates(x)[, 2]
 
   # create matrix of centers to get surrounding from
   zmat <- matrix(centers, nrow = N, ncol = M)
@@ -167,8 +167,8 @@ findvalleys <- function(x) {
 ssc <- function(x) {
   # z values, coordinates, and resolution (change in x, y)
   z <- getValues(x)
-  xcoords <- coordinates(x)[, 1]
-  ycoords <- coordinates(x)[, 2]
+  xcoords <- sp::coordinates(x)[, 1]
+  ycoords <- sp::coordinates(x)[, 2]
   deltax <- res(x)[1] / mean(res(x)[1], res(x)[2])
   deltay <- res(x)[2] / mean(res(x)[1], res(x)[2])
 

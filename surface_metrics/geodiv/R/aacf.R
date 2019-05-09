@@ -9,6 +9,8 @@
 #'   of the AACF. Both matrix and image values are normalized
 #'   so that the maximum is equal to 1.
 #' @examples
+#' library(raster)
+#'
 #' # import raster image
 #' data(normforest)
 #'
@@ -19,6 +21,7 @@
 #' plot(aacf_list[[2]])
 #' @export
 aacf <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
 
   # get raster dimensions
   M <- ncol(x)
@@ -29,7 +32,7 @@ aacf <- function(x) {
 
   # if irregular non-na area, cut to biggest square possible
   if (sum(is.na(zmat)) != 0) {
-    origin <- c(mean(coordinates(x)[, 1]), mean(coordinates(x)[, 2]))
+    origin <- c(mean(sp::coordinates(x)[, 1]), mean(sp::coordinates(x)[, 2]))
     potentials <- data.frame(xmin = rep(origin[1], floor(N / 2)),
                              xmax = origin[1],
                              ymin = origin[2],
@@ -119,6 +122,10 @@ aacf <- function(x) {
 #' Scl20 <- sclvals[[1]]
 #' @export
 scl <- function(x, threshold = c(0.20, 1 / exp(1)), plot = FALSE) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+  if(class(plot) != 'logical') {stop('plot argument must be TRUE/FALSE.')}
+  if(class(threshold) != 'numeric') {stop('threshold must be numeric.')}
+  if(length(threshold < 0) >= 1) {stop('threshold values cannot be less than 0.')}
 
   # get aacf img
   aacfimg <- aacf(x)[[2]]
@@ -129,7 +136,7 @@ scl <- function(x, threshold = c(0.20, 1 / exp(1)), plot = FALSE) {
   aacfimg <- crop(aacfimg, c(xmin(aacfimg), xmax(aacfimg), ymin, ymax(aacfimg)))
 
   # get origin of image (actually bottom center)
-  origin <- c(mean(coordinates(aacfimg)[, 1]), ymin(aacfimg))
+  origin <- c(mean(sp::coordinates(aacfimg)[, 1]), ymin(aacfimg))
 
   ### line calculations are taken from the plotrix function draw.radial.line
   # calculate rays extending from origin
@@ -142,7 +149,7 @@ scl <- function(x, threshold = c(0.20, 1 / exp(1)), plot = FALSE) {
   linelist <- lapply(seq(1, length(linex), 2),
                      FUN = function(i) sp::Lines(sp::Line(cbind(linex[i:(i + 1)], liney[i:(i + 1)])),
                                              ID = paste('l', i, sep = '')))
-  lines <- sp::SpatialLines(linelist, proj4string = CRS(proj4string(aacfimg)))
+  lines <- sp::SpatialLines(linelist, proj4string = sp::CRS(sp::proj4string(aacfimg)))
 
   # plot and calculate amplitude sums along rays
   if(plot == TRUE) {
@@ -159,12 +166,12 @@ scl <- function(x, threshold = c(0.20, 1 / exp(1)), plot = FALSE) {
   # each line has length = half_dist, with each point approx. 1 pixel apart
   fast_dists <- list()
   for (i in 1:length(threshold)) {
-    fast_dists[[i]] <- suppressWarnings(mindist(threshold[i], Aalpha, aacfimg))
+    fast_dists[[i]] <- suppressWarnings(.mindist(threshold[i], Aalpha, aacfimg))
   }
 
   slow_dists <- list()
   for (i in 1:length(threshold)) {
-    slow_dists[[i]] <- suppressWarnings(maxdist(threshold[i], Aalpha, aacfimg))
+    slow_dists[[i]] <- suppressWarnings(.maxdist(threshold[i], Aalpha, aacfimg))
   }
 
   return(c(fast_dists, slow_dists))
@@ -182,7 +189,7 @@ scl <- function(x, threshold = c(0.20, 1 / exp(1)), plot = FALSE) {
 #' @param Aalpha An list of dataframes produced by \code{scl()} that contain
 #'   the AACF values along lines extending in multiple directions from the
 #'   AACF origin (autocorrelation = 1).
-#' @param aacf A raster of the areal autocorrelation function. This
+#' @param aacfimg A raster of the areal autocorrelation function. This
 #'   is the AACF raster split in two in terms of height.
 #' @return A list containing the minimum distances from an
 #'   autocorrelation value of 1 to the specified autocorrelation value < 1.
@@ -209,9 +216,9 @@ scl <- function(x, threshold = c(0.20, 1 / exp(1)), plot = FALSE) {
   decay_ind <- unlist(decay_ind)
 
   # get distance to minimum index below threshold value
-  x <- coordinates(aacfimg)[, 1]
-  y <- coordinates(aacfimg)[, 2]
-  origin <- c(mean(coordinates(aacfimg)[, 1]), ymin(aacfimg))
+  x <- sp::coordinates(aacfimg)[, 1]
+  y <- sp::coordinates(aacfimg)[, 2]
+  origin <- c(mean(sp::coordinates(aacfimg)[, 1]), ymin(aacfimg))
   decay_celln <- list()
   for (j in 1:length(Aalpha)) {
     decay_celln[[j]] <- unlist(lapply(Aalpha[[j]], FUN = function(x) x[decay_ind[j], 1]))
@@ -237,7 +244,7 @@ scl <- function(x, threshold = c(0.20, 1 / exp(1)), plot = FALSE) {
 #' @param Aalpha An list of dataframes produced by \code{scl()} that contain
 #'   the AACF values along lines extending in multiple directions from the
 #'   AACF origin (autocorrelation = 1).
-#' @param aacf An 0.5n x n raster of the areal autocorrelation function. This
+#' @param aacfimg A raster of the areal autocorrelation function. This
 #'   is the AACF raster split in two in terms of height.
 #' @return A list containing the maximum distances from an
 #'   autocorrelation value of 1 to the specified autocorrelation value < 1.
@@ -252,9 +259,9 @@ scl <- function(x, threshold = c(0.20, 1 / exp(1)), plot = FALSE) {
   decay_ind <- unlist(decay_ind)
 
   # get distance to minimum index below threshold value
-  x <- coordinates(aacfimg)[, 1]
-  y <- coordinates(aacfimg)[, 2]
-  origin <- c(mean(coordinates(aacfimg)[, 1]), ymin(aacfimg))
+  x <- sp::coordinates(aacfimg)[, 1]
+  y <- sp::coordinates(aacfimg)[, 2]
+  origin <- c(mean(sp::coordinates(aacfimg)[, 1]), ymin(aacfimg))
   decay_celln <- list()
   for (j in 1:length(Aalpha)) {
     decay_celln[[j]] <- unlist(lapply(Aalpha[[j]], FUN = function(x) x[decay_ind[j], 1]))
@@ -295,6 +302,10 @@ scl <- function(x, threshold = c(0.20, 1 / exp(1)), plot = FALSE) {
 #' Str20 <- strvals[[1]]
 #' @export
 str <- function(x, threshold = c(0.20, 1 / exp(1))) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+  if(class(threshold) != 'numeric') {stop('threshold must be numeric.')}
+  if(length(threshold < 0) >= 1) {stop('threshold values cannot be less than 0.')}
+
   sclvals <- scl(x, threshold = threshold, plot = FALSE)
 
   vals <- list()

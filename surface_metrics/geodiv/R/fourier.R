@@ -32,7 +32,7 @@ std <- function(x, plot = FALSE) {
 
   # if irregular non-na area, cut to biggest square possible
   if (sum(is.na(zmat)) != 0) {
-    origin <- c(mean(coordinates(x)[, 1]), mean(coordinates(x)[, 2]))
+    origin <- c(mean(sp::coordinates(x)[, 1]), mean(sp::coordinates(x)[, 2]))
     potentials <- data.frame(xmin = rep(origin[1], floor(N / 2)),
                              xmax = origin[1],
                              ymin = origin[2],
@@ -75,7 +75,7 @@ std <- function(x, plot = FALSE) {
   amp_img <- crop(amp_img, c(xmin(amp_img), xmax(amp_img), ymin, ymax(amp_img)))
 
   # get origin of image (actually bottom center)
-  origin <- c(mean(coordinates(amp_img)[,1]), ymin(amp_img))
+  origin <- c(mean(sp::coordinates(amp_img)[,1]), ymin(amp_img))
 
   ### line calculations are taken from the plotrix function draw.radial.line
   # calculate rays extending from origin
@@ -88,7 +88,7 @@ std <- function(x, plot = FALSE) {
   linelist <- lapply(seq(1, length(linex), 2),
                      FUN = function(i) sp::Lines(sp::Line(cbind(linex[i:(i + 1)], liney[i:(i + 1)])),
                                              ID = paste('l', i, sep = '')))
-  lines <- sp::SpatialLines(linelist, proj4string = sp::CRS(proj4string(amp_img)))
+  lines <- sp::SpatialLines(linelist, proj4string = sp::CRS(sp::proj4string(amp_img)))
 
   # plot and calculate amplitude sums along rays
   if(plot == TRUE) {
@@ -101,7 +101,7 @@ std <- function(x, plot = FALSE) {
     Aalpha[i] <- extract(amp_img, lines[i], fun = sum)
   }
 
-  std <- rad2deg(alpha[which(unlist(Aalpha) == max(unlist(Aalpha), na.rm = TRUE))])
+  std <- .rad2deg(alpha[which(unlist(Aalpha) == max(unlist(Aalpha), na.rm = TRUE))])
   stdi <- mean(unlist(Aalpha), na.rm = TRUE) / max(unlist(Aalpha), na.rm = TRUE)
 
   return(list(std, stdi))
@@ -143,7 +143,7 @@ srw <- function(x, plot = FALSE) {
 
   # if irregular non-na area, cut to biggest square possible
   if (sum(is.na(zmat)) != 0) {
-    origin <- c(mean(coordinates(x)[, 1]), mean(coordinates(x)[, 2]))
+    origin <- c(mean(sp::coordinates(x)[, 1]), mean(sp::coordinates(x)[, 2]))
     potentials <- data.frame(xmin = rep(origin[1], floor(N / 2)),
                              xmax = origin[1],
                              ymin = origin[2],
@@ -185,7 +185,7 @@ srw <- function(x, plot = FALSE) {
   amp_img <- crop(amp_img, c(xmin(amp_img), xmax(amp_img), ymin, ymax(amp_img)))
 
   # get origin of image (actually bottom center)
-  origin <- c(mean(coordinates(amp_img)[,1]), ymin(amp_img))
+  origin <- c(mean(sp::coordinates(amp_img)[,1]), ymin(amp_img))
 
   # calculate half circles extending from origin
   nv <- 100
@@ -196,7 +196,7 @@ srw <- function(x, plot = FALSE) {
   liney <- unlist(lapply(seq(1, length(radius)), function(x) origin[2] + radius[x] * sin(angles)))
   linelist <- lapply(seq(1, length(linex), 100),
                      FUN = function(i) sp::Lines(list(sp::Line(cbind(linex[i:(i + 99)], liney[i:(i + 99)]))), ID = paste('p', i, sep = '')))
-  lines <- sp::SpatialLines(linelist, proj4string = sp::CRS(proj4string(amp_img)))
+  lines <- sp::SpatialLines(linelist, proj4string = sp::CRS(sp::proj4string(amp_img)))
 
   # plot and get amplitude sums within each radius
   if (plot == TRUE){
@@ -258,7 +258,7 @@ sfd <- function(x) {
 
   # if irregular non-na area, cut to biggest square possible
   if (sum(is.na(zmat)) != 0) {
-    origin <- c(mean(coordinates(x)[, 1]), mean(coordinates(x)[, 2]))
+    origin <- c(mean(sp::coordinates(x)[, 1]), mean(sp::coordinates(x)[, 2]))
     potentials <- data.frame(xmin = rep(origin[1], floor(N / 2)),
                              xmax = origin[1],
                              ymin = origin[2],
@@ -300,7 +300,7 @@ sfd <- function(x) {
   amp_img <- crop(amp_img, c(xmin(amp_img), xmax(amp_img), ymin, ymax(amp_img)))
 
   # get origin of image (actually bottom center)
-  origin <- c(mean(coordinates(amp_img)[,1]), ymin(amp_img))
+  origin <- c(mean(sp::coordinates(amp_img)[,1]), ymin(amp_img))
 
   # from matlab fdsurfft function
   num_dir <- 24 # number of directions that the frequency space is uniformally divided
@@ -308,8 +308,8 @@ sfd <- function(x) {
 
   M <- nrow(ft_shift)
   N <- ncol(ft_shift)
-  xcoords <- coordinates(x)[, 1]
-  ycoords <- coordinates(x)[, 2]
+  xcoords <- sp::coordinates(x)[, 1]
+  ycoords <- sp::coordinates(x)[, 2]
   xdist <- matrix(xcoords, nrow = M, ncol = N, byrow = TRUE)[1, ] - origin[1]
   ydist <- matrix(ycoords, nrow = M, ncol = N, byrow = TRUE)[, 1] - origin[2]
   xctr <- which(xdist == min(abs(xdist))) # should actually be index of x that = origin x

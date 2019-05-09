@@ -21,6 +21,8 @@
 #' @return A numeric value representing the area above the curve with
 #'   x bounds \code{a} and \code{b}.
 #' @examples
+#' library(raster)
+#'
 #' # import raster image
 #' data(normforest)
 #'
@@ -31,7 +33,7 @@
 #' mod <- ecdf((1 - z))
 #'
 #' # valley fluid retention index = void volume in 'valley' zone
-#' Svi <- simpsons_above(f = mod, b = 1, a = 0.8, n = 500)
+#' Svi <- area_above(f = mod, b = 1, a = 0.8, n = 500)
 #' @export
 area_above <- function(f, a, b, n = 100) {
 
@@ -72,6 +74,8 @@ area_above <- function(f, a, b, n = 100) {
 #' @return A numeric value representing the area under the curve with
 #'   x bounds \code{a} and \code{b}.
 #' @examples
+#' library(raster)
+#'
 #' # import raster image
 #' data(normforest)
 #'

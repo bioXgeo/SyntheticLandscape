@@ -24,6 +24,8 @@
 #' @return A matrix of the same size as the raster with values
 #'   predicted from the polynomial fit.
 #' @examples
+#' library(raster)
+#'
 #' # import raster image
 #' data(orforest)
 #'
@@ -38,8 +40,8 @@
 #' @export
 fitplane <- function(x, order) {
   # extract coordinates and values
-  xcoord <- coordinates(x)[, 1]
-  ycoord <- coordinates(x)[, 2]
+  xcoord <- sp::coordinates(x)[, 1]
+  ycoord <- sp::coordinates(x)[, 2]
   z <- getValues(x)
 
   # fit least squares polynomial with order = order
@@ -62,6 +64,8 @@ fitplane <- function(x, order) {
 #' @return A raster of the same size as the input with values
 #'   predicted from the best polynomial fit.
 #' @examples
+#' library(raster)
+#'
 #' # import raster image
 #' data(orforest)
 #'
@@ -69,7 +73,7 @@ fitplane <- function(x, order) {
 #' poly <- bestfitplane(orforest)
 #'
 #' # plot the fit
-#' plot(x)
+#' plot(poly)
 #' @export
 bestfitplane <- function(x) {
   # fit least squares plane for polynomials from orders 2 - 3
@@ -110,6 +114,8 @@ bestfitplane <- function(x) {
 #'   equal to the difference between the original and bestfit
 #'   plane rasters.
 #' @examples
+#' library(raster)
+#'
 #' # import raster image
 #' data(orforest)
 #'

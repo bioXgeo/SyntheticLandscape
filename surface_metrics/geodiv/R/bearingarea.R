@@ -24,10 +24,10 @@ bearing_area <- function(x) {
 
   # basic values
   N <- length(z)
-  s <- sd(z)
+  s <- stats::sd(z)
   zbar <- mean(z, na.rm = TRUE)
 
-  f <- ecdf(1 - z)
+  f <- stats::ecdf(1 - z)
 
   return(f)
 }
@@ -66,11 +66,11 @@ plot_ba_curve <- function(x, divisions = FALSE) {
   if (divisions == TRUE) {
     line_fit <- find_flat(x, perc = 0.4)
 
-    abline(line_fit[[1]]$coefficients[[1]], line_fit[[1]]$coefficients[[2]], col = 'blue')
-    abline(h = line_fit[[3]], col = 'red')
-    abline(h = line_fit[[4]], col = 'red')
-    abline(v = line_fit[[5]], col = 'green')
-    abline(v = line_fit[[6]], col = 'green')
+    graphics::abline(line_fit[[1]]$coefficients[[1]], line_fit[[1]]$coefficients[[2]], col = 'blue')
+    graphics::abline(h = line_fit[[3]], col = 'red')
+    graphics::abline(h = line_fit[[4]], col = 'red')
+    graphics::abline(v = line_fit[[5]], col = 'green')
+    graphics::abline(v = line_fit[[6]], col = 'green')
   }
 }
 
@@ -122,7 +122,7 @@ find_flat <- function(x, perc = 0.4) {
   # calculate least-squares line for 40% of curve with smallest decline (lowest slope)
   lm_data <- data.frame(x = xval[xval >= slope_min$xstart & xval <= slope_min$xend],
                         y = yval[xval >= slope_min$xstart & xval <= slope_min$xend])
-  ls_line <- lm(y ~ x, data = lm_data)
+  ls_line <- stats::lm(y ~ x, data = lm_data)
 
   # get value of ls line between 0 and 1
   pred_data <- tibble::remove_rownames(data.frame(x = even_x, y = even_y))

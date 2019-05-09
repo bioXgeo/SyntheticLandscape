@@ -8,6 +8,9 @@ fftshift(x, dim = -1)
 }
 \arguments{
 \item{x}{An n x n Fourier transform matrix.}
+
+\item{dim}{Which dimension to shift the matrix. -1 swaps up/down and
+left/right. 1 swaps up/down. 2 swaps left/right.}
 }
 \value{
 An n x n matrix with the zero-frequency component of
@@ -20,13 +23,15 @@ It serves to shift the zero-frequency component of the
 Fourier transform to the center of the matrix.
 }
 \examples{
+library(raster)
+
 # import raster image
 data(normforest)
 
 # convert to matrix form
 M <- ncol(normforest)
 N <- nrow(normforest)
-zmat <- matrix(getValues(normforest), ncol = M, nrow = N, byrow = TRUE)
+zmat <- matrix(raster::getValues(normforest), ncol = M, nrow = N, byrow = TRUE)
 
 # calculate fourier transform and shift
 ftmat <- fft(zmat)

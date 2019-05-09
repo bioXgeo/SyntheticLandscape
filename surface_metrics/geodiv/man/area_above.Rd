@@ -36,6 +36,8 @@ using the trapezoid rule with n subdivisions. Assume
 \code{a < b} and \code{n} is a positive integer.
 }
 \examples{
+library(raster)
+
 # import raster image
 data(normforest)
 
@@ -46,5 +48,5 @@ z <- getValues(normforest)
 mod <- ecdf((1 - z))
 
 # valley fluid retention index = void volume in 'valley' zone
-Svi <- simpsons_above(f = mod, b = 1, a = 0.8, n = 500)
+Svi <- area_above(f = mod, b = 1, a = 0.8, n = 500)
 }

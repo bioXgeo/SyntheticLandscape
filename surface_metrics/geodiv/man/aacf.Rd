@@ -20,6 +20,8 @@ inverse of the Fourier power spectrum. \code{aacf(x)} returns
 the AACF in both matrix and image format.
 }
 \examples{
+library(raster)
+
 # import raster image
 data(normforest)
 
