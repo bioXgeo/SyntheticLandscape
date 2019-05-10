@@ -2,7 +2,7 @@
 % Please edit documentation in R/aacf.R
 \name{str}
 \alias{str}
-\title{Estimate texture aspect ratio.}
+\title{Estimate Texture Aspect Ratio}
 \usage{
 str(x, threshold = c(0.2, 1/exp(1)))
 }

@@ -2,8 +2,8 @@
 % Please edit documentation in R/bestfit.R
 \name{slopemeans}
 \alias{slopemeans}
-\title{Determines the average slope along larger segments of
-the bearing area curve of a raster.}
+\title{Determines the Average Slope Along Larger Segments of
+the Bearing Area Curve of a Raster}
 \usage{
 slopemeans(slopes, l = 0.4)
 }

@@ -1,4 +1,4 @@
-#' Estimate the areal autocorrelation function.
+#' Estimate the Areal Autocorrelation Function
 #'
 #' Calculates the areal autocorrelation function (AACF) as the
 #' inverse of the Fourier power spectrum. \code{aacf(x)} returns
@@ -91,7 +91,7 @@ aacf <- function(x) {
 }
 
 
-#' Calculate correlation length.
+#' Calculate Correlation Length
 #'
 #' Calculates the smallest and largest distances to specified autocorrelation
 #' values (e.g., 0.2) of the areal autocorrelation function (AACF). All 180
@@ -125,7 +125,7 @@ scl <- function(x, threshold = c(0.20, 1 / exp(1)), plot = FALSE) {
   if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
   if(class(plot) != 'logical') {stop('plot argument must be TRUE/FALSE.')}
   if(class(threshold) != 'numeric') {stop('threshold must be numeric.')}
-  if(length(threshold < 0) >= 1) {stop('threshold values cannot be less than 0.')}
+  if(sum(threshold < 0) >= 1) {stop('threshold values cannot be less than 0.')}
 
   # get aacf img
   aacfimg <- aacf(x)[[2]]
@@ -177,7 +177,7 @@ scl <- function(x, threshold = c(0.20, 1 / exp(1)), plot = FALSE) {
   return(c(fast_dists, slow_dists))
 }
 
-#' Estimate minimum correlation length.
+#' Estimate Minimum Correlation Length
 #'
 #' Internal function to calculates the minimum distances to specified
 #' autocorrelation values (e.g., 0.2) of the areal autocorrelation
@@ -232,7 +232,7 @@ scl <- function(x, threshold = c(0.20, 1 / exp(1)), plot = FALSE) {
   return(decay_dist)
 }
 
-#' Estimate maximum correlation length.
+#' Estimate Maximum Correlation Length
 #'
 #' Internal function to calculates the maximum distances to specified
 #' autocorrelation values (e.g., 0.2) of the areal autocorrelation
@@ -275,7 +275,7 @@ scl <- function(x, threshold = c(0.20, 1 / exp(1)), plot = FALSE) {
   return(decay_dist)
 }
 
-#' Estimate texture aspect ratio.
+#' Estimate Texture Aspect Ratio
 #'
 #' Calculates the texture aspect ratio (Str) at defined autocorrelation
 #' values. The texture aspect ratio is the ratio of the fastest to
@@ -304,7 +304,7 @@ scl <- function(x, threshold = c(0.20, 1 / exp(1)), plot = FALSE) {
 str <- function(x, threshold = c(0.20, 1 / exp(1))) {
   if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
   if(class(threshold) != 'numeric') {stop('threshold must be numeric.')}
-  if(length(threshold < 0) >= 1) {stop('threshold values cannot be less than 0.')}
+  if(sum(threshold < 0) >= 1) {stop('threshold values cannot be less than 0.')}
 
   sclvals <- scl(x, threshold = threshold, plot = FALSE)
 

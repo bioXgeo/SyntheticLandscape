@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilities.R
 \name{bestfitplane}
 \alias{bestfitplane}
-\title{Finds the best fit polynomial plane.}
+\title{Finds the Best Fit Polynomial Plane}
 \usage{
 bestfitplane(x)
 }

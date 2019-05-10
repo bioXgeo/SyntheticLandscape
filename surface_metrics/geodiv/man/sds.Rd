@@ -2,7 +2,7 @@
 % Please edit documentation in R/localsurface.R
 \name{sds}
 \alias{sds}
-\title{Summit density.}
+\title{Summit Density}
 \usage{
 sds(x)
 }

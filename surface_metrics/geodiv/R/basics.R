@@ -1,4 +1,4 @@
-#' Calculates the average roughness of a surface.
+#' Calculates the Average Roughness of a Surface
 #'
 #' Finds the average roughness of a surface (Sa) as the absolute
 #' deviation of surface heights from the mean surface height.
@@ -27,7 +27,7 @@ sa <- function(x) {
   return(val)
 }
 
-#' Calculates the root mean square roughness of a surface.
+#' Calculates the Root Mean Square Roughness of a Surface
 #'
 #' Finds the root mean square roughness of a surface
 #' (Sq) as the standard deviation of surface heights
@@ -55,7 +55,7 @@ sq <- function(x) {
   return(val)
 }
 
-#' Calculates the skewness of raster values.
+#' Calculates the Skewness of Raster Values
 #'
 #' Finds the Fisher-Pearson coefficient of skewness
 #' for raster values (Ssk). Skewness represents the
@@ -95,7 +95,7 @@ ssk <- function(x, adj = TRUE) {
   return(val)
 }
 
-#' Calculates the kurtosis of raster values.
+#' Calculates the Kurtosis of Raster Values
 #'
 #' Finds the kurtosis for a distribution of raster
 #' values (Sku). Kurtosis represents the peakedness
@@ -136,7 +136,7 @@ sku <- function(x, excess = TRUE) {
   return(val)
 }
 
-#' Calculates the maximum valley depth of a surface raster.
+#' Calculates the Maximum Valley Depth of a Surface Raster
 #'
 #' Finds the absolute value of the lowest value in the
 #' landscape (maximum valley depth; Sv) for a raster
@@ -161,7 +161,7 @@ sv <- function(x) {
   return(val)
 }
 
-#' Calculates the maximum peak height of a surface raster.
+#' Calculates the Maximum Peak Height of a Surface Raster
 #'
 #' Finds the absolute value of the highest value in the
 #' landscape (maximum peak height; Sph) for a raster
@@ -186,7 +186,7 @@ sph <- function(x) {
   return(val)
 }
 
-#' Calculates the mean peak height of a surface raster.
+#' Calculates the Mean Peak Height of a Surface Raster
 #'
 #' Finds the mean height of positive values in the
 #' landscape (mean peak height; Smean) for a raster

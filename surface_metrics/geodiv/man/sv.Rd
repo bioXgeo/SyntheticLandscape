@@ -2,7 +2,7 @@
 % Please edit documentation in R/basics.R
 \name{sv}
 \alias{sv}
-\title{Calculates the maximum valley depth of a surface raster.}
+\title{Calculates the Maximum Valley Depth of a Surface Raster}
 \usage{
 sv(x)
 }

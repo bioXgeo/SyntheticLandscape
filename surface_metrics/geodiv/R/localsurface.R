@@ -4,7 +4,7 @@
 # local minimum = points where all 8 surrounding points are higher & below zero
 # local maximum = points where all 8 surrounding points are lower & above zero
 
-#' Find local peaks.
+#' Find Local Peaks
 #'
 #' Locates local peaks on a raster. A peak is defined as any pixel where
 #' all 8 surrounding pixels have lower values, and the center pixel
@@ -27,6 +27,8 @@
 #' Sds <- nrow(peaks) / ((N - 1) * (M - 1))
 #' @export
 findpeaks <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+
   N <- dim(x)[1] # rows
   M <- dim(x)[2] # cols
 
@@ -74,7 +76,7 @@ findpeaks <- function(x) {
   return(peaks)
 }
 
-#' Find local valleys.
+#' Find Local Valleys
 #'
 #' Locates local valleys on a raster. A valley is defined as any pixel where
 #' all 8 surrounding pixels have higher values, and the center pixel
@@ -100,6 +102,8 @@ findpeaks <- function(x) {
 #' S10z <- (sum(top_peaks$val) + sum(abs(bottom_valleys$val))) / 5
 #' @export
 findvalleys <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+
   N <- dim(x)[1] # rows
   M <- dim(x)[2] # cols
 
@@ -148,7 +152,7 @@ findvalleys <- function(x) {
   return(valleys)
 }
 
-#' Mean summit curvature.
+#' Mean Summit Curvature
 #'
 #' Calculates the mean summit curvature of a raster. Mean summit
 #' curvature is the average principle curvature of local maximas
@@ -165,6 +169,8 @@ findvalleys <- function(x) {
 #' Ssc <- ssc(normforest)
 #' @export
 ssc <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+
   # z values, coordinates, and resolution (change in x, y)
   z <- getValues(x)
   xcoords <- sp::coordinates(x)[, 1]
@@ -222,7 +228,7 @@ ssc <- function(x) {
   return(ssc)
 }
 
-#' Summit density.
+#' Summit Density
 #'
 #' Calculates the summit density of a raster. Summit density is the number of local
 #' peaks per unit area.
@@ -237,6 +243,8 @@ ssc <- function(x) {
 #' Sds <- sds(normforest)
 #' @export
 sds <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+
   M <- nrow(x)
   N <- ncol(x)
 
@@ -247,7 +255,7 @@ sds <- function(x) {
   return(val)
 }
 
-#' Ten-point height.
+#' Ten-Point Height
 #'
 #' Calculates the average height abover the mean surface for the five highest local maxima
 #' plus the average height below the mean surface for the five lowest local minima.
@@ -262,6 +270,8 @@ sds <- function(x) {
 #' S10z <- s10z(normforest)
 #' @export
 s10z <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+
   peaks <- findpeaks(x)
   valleys <- findvalleys(x)
 

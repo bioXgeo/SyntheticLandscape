@@ -2,7 +2,7 @@
 % Please edit documentation in R/bearingarea.R
 \name{spk}
 \alias{spk}
-\title{Reduced peak height of a raster.}
+\title{Reduced Peak Height of a Raster}
 \usage{
 spk(x)
 }

@@ -3,7 +3,7 @@
 # both functions from the equations here:
 # https://www.ntmdt-si.ru/data/media/files/manuals/image_analisys_p9_nov12.e.pdf
 
-#' Root mean square slope of surface.
+#' Root Mean Square Slope of Surface
 #'
 #' Calculates the root mean square slope of a raster
 #' surface using the two-point method. This function is based
@@ -21,6 +21,8 @@
 #' Sdq <- sdq(normforest)
 #' @export
 sdq <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+
   # z values, coordinates, and resolution (change in x, y)
   z <- getValues(x)
   deltax <- res(x)[1]
@@ -39,7 +41,7 @@ sdq <- function(x) {
   return(sdq)
 }
 
-#' Root area mean square slope of surface.
+#' Root Area Mean Square Slope of Surface
 #'
 #' Calculates the area root mean square slope of a raster
 #' surface using the seven-point method. This function is based
@@ -57,6 +59,7 @@ sdq <- function(x) {
 #' Sdq6 <- sdq6(normforest)
 #' @export
 sdq6 <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
 
   # get resolution
   deltax <- res(x)[1]

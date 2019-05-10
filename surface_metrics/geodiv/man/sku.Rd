@@ -2,7 +2,7 @@
 % Please edit documentation in R/basics.R
 \name{sku}
 \alias{sku}
-\title{Calculates the kurtosis of raster values.}
+\title{Calculates the Kurtosis of Raster Values}
 \usage{
 sku(x, excess = TRUE)
 }

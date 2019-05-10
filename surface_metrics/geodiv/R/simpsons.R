@@ -1,4 +1,4 @@
-#' Area above the bearing area curve.
+#' Area Above the Bearing Area Curve
 #'
 #' Calculates the area above the bearing area curve from
 #' points \code{a} to \code{b}. If a box is drawn around
@@ -36,6 +36,15 @@
 #' Svi <- area_above(f = mod, b = 1, a = 0.8, n = 500)
 #' @export
 area_above <- function(f, a, b, n = 100) {
+  if(('function' %in% class(f)) != TRUE) {stop('f must be a function.')}
+  if(class(a) != 'numeric') {stop('a must be numeric.')}
+  if(class(b) != 'numeric') {stop('b must be numeric.')}
+  if(class(n) != 'numeric') {stop('n must be numeric.')}
+  if(length(a) > 1) {stop('too many values supplied to a.')}
+  if(length(b) > 1) {stop('too many values supplied to b.')}
+  if(length(n) > 1) {stop('too many values supplied to n.')}
+  if(n <= 0) {stop('n must be greater than 0.')}
+  if(a >= b) {stop('b must be greater than a.')}
 
   h <- (b - a) / n # sub-interval width
   x <- seq(a, b, by = h)
@@ -57,7 +66,7 @@ area_above <- function(f, a, b, n = 100) {
   return(area_above)
 }
 
-#' Simpson's rule empirical area under a curve.
+#' Simpson's Rule Empirical Area Under a Curve
 #'
 #' Calculates the area below a curve from
 #' points \code{a} to \code{b}. This function is provided
@@ -89,6 +98,16 @@ area_above <- function(f, a, b, n = 100) {
 #' int_area <- simpsons(f = mod, b = 1, a = 0.8, n = 500)
 #' @export
 simpsons <- function(f, a, b, n = 100) {
+  if(('function' %in% class(f)) != TRUE) {stop('f must be a function.')}
+  if(class(a) != 'numeric') {stop('a must be numeric.')}
+  if(class(b) != 'numeric') {stop('b must be numeric.')}
+  if(class(n) != 'numeric') {stop('n must be numeric.')}
+  if(length(a) > 1) {stop('too many values supplied to a.')}
+  if(length(b) > 1) {stop('too many values supplied to b.')}
+  if(length(n) > 1) {stop('too many values supplied to n.')}
+  if(n <= 0) {stop('n must be greater than 0.')}
+  if(a >= b) {stop('b must be greater than a.')}
+
   h <- (b - a) / n # sub-interval width
   x <- seq(a, b, by = h)
 

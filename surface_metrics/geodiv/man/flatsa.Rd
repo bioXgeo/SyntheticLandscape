@@ -2,7 +2,7 @@
 % Please edit documentation in R/surfacearea.R
 \name{flatsa}
 \alias{flatsa}
-\title{Surface area of a flattened raster.}
+\title{Surface Area of a Flattened Raster}
 \usage{
 flatsa(x)
 }

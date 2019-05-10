@@ -2,7 +2,7 @@
 % Please edit documentation in R/localsurface.R
 \name{ssc}
 \alias{ssc}
-\title{Mean summit curvature.}
+\title{Mean Summit Curvature}
 \usage{
 ssc(x)
 }

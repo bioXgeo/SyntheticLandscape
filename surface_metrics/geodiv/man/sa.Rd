@@ -2,7 +2,7 @@
 % Please edit documentation in R/basics.R
 \name{sa}
 \alias{sa}
-\title{Calculates the average roughness of a surface.}
+\title{Calculates the Average Roughness of a Surface}
 \usage{
 sa(x)
 }

@@ -1,4 +1,4 @@
-#' Texture direction metrics.
+#' Texture Direction Metrics
 #'
 #' Calculates the angle of dominating texture and the texture
 #' direction index of the Fourier spectrum image calculated
@@ -22,6 +22,8 @@
 #' Stdi <- stdvals[[2]]
 #' @export
 std <- function(x, plot = FALSE) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+  if(class(plot) != 'logical') {stop('plot must be logical.')}
 
   # get raster dimensions
   M <- ncol(x)
@@ -107,7 +109,7 @@ std <- function(x, plot = FALSE) {
   return(list(std, stdi))
 }
 
-#' Radial wavelength metrics.
+#' Radial Wavelength Metrics
 #'
 #' Calculates the dominant radial wavelength, radial wavelength
 #' index, and mean half wavelength of the radial Fourier spectrum.
@@ -133,6 +135,8 @@ std <- function(x, plot = FALSE) {
 #' Shw <- srwvals[[3]]
 #' @export
 srw <- function(x, plot = FALSE) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+  if(class(plot) != 'logical') {stop('plot must be logical.')}
 
   # get raster dimensions
   M <- ncol(x)
@@ -228,7 +232,7 @@ srw <- function(x, plot = FALSE) {
   return(list(Srw, Srwi, Shw))
 }
 
-#' Calculates the fractal dimension.
+#' Calculates the Fractal Dimension
 #'
 #' Calculates the 2D fractal dimension of a raster using the
 #' Fourier transform. This function is a modified version, adapted
@@ -246,8 +250,9 @@ srw <- function(x, plot = FALSE) {
 #' Sfd <- sfd(normforest)
 #' @export
 sfd <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+
   # this has been checked against the matlab version and produces the same results
-  # now need to confirm that it is the correct value...
 
   # get raster dimensions
   M <- ncol(x)

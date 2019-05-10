@@ -2,12 +2,12 @@
 % Please edit documentation in R/bestfit.R
 \name{slopecalc}
 \alias{slopecalc}
-\title{Determines the slopes along a the bearing area curve.}
+\title{Determines the Slopes Along the Bearing Area Curve}
 \usage{
 slopecalc(x, h, f)
 }
 \arguments{
-\item{x}{A raster.}
+\item{x}{A vector of x values.}
 
 \item{h}{Spacing before and after each point.
 2h is the distance over which slopes are calculated.}

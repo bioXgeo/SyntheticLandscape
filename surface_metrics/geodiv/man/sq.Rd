@@ -2,7 +2,7 @@
 % Please edit documentation in R/basics.R
 \name{sq}
 \alias{sq}
-\title{Calculates the root mean square roughness of a surface.}
+\title{Calculates the Root Mean Square Roughness of a Surface}
 \usage{
 sq(x)
 }

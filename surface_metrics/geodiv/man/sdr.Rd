@@ -2,7 +2,7 @@
 % Please edit documentation in R/surfacearea.R
 \name{sdr}
 \alias{sdr}
-\title{Surface area ratio.}
+\title{Surface Area Ratio}
 \usage{
 sdr(x)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/localsurface.R
 \name{s10z}
 \alias{s10z}
-\title{Ten-point height.}
+\title{Ten-Point Height}
 \usage{
 s10z(x)
 }

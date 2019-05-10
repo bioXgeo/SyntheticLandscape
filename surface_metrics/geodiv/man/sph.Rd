@@ -2,7 +2,7 @@
 % Please edit documentation in R/basics.R
 \name{sph}
 \alias{sph}
-\title{Calculates the maximum peak height of a surface raster.}
+\title{Calculates the Maximum Peak Height of a Surface Raster}
 \usage{
 sph(x)
 }

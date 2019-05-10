@@ -2,7 +2,7 @@
 % Please edit documentation in R/aacf.R
 \name{scl}
 \alias{scl}
-\title{Calculate correlation length.}
+\title{Calculate Correlation Length}
 \usage{
 scl(x, threshold = c(0.2, 1/exp(1)), plot = FALSE)
 }

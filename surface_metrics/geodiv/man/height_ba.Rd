@@ -2,7 +2,7 @@
 % Please edit documentation in R/bearingarea.R
 \name{height_ba}
 \alias{height_ba}
-\title{Value of the bearing area curve at a specified value.}
+\title{Value of the Bearing Area Curve at a Specified Value}
 \usage{
 height_ba(x, xval)
 }

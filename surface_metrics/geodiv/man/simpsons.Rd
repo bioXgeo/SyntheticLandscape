@@ -2,7 +2,7 @@
 % Please edit documentation in R/simpsons.R
 \name{simpsons}
 \alias{simpsons}
-\title{Simpson's rule empirical area under a curve.}
+\title{Simpson's Rule Empirical Area Under a Curve}
 \usage{
 simpsons(f, a, b, n = 100)
 }

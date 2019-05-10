@@ -1,4 +1,4 @@
-#' Calculates the rotated Bearing Area curve.
+#' Calculates the Rotated Bearing Area Curve
 #'
 #' Finds a rotated version of the Bearing Area (Abbott-Firestone)
 #' curve from a raster. The resulting function should be
@@ -20,6 +20,8 @@
 #' plot(yval ~ xval)
 #' @export
 bearing_area <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+
   z <- getValues(x)
 
   # basic values
@@ -32,7 +34,7 @@ bearing_area <- function(x) {
   return(f)
 }
 
-#' Plots the Bearing Area curve.
+#' Plots the Bearing Area Curve
 #'
 #' Calculates and plots the Bearing Area curve for a raster
 #' using the \code{bearing_area()} function (with correctly
@@ -56,6 +58,9 @@ bearing_area <- function(x) {
 #' plot_ba_curve(normforest, divisions = TRUE)
 #' @export
 plot_ba_curve <- function(x, divisions = FALSE) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+  if(class(divisions) != 'logical') {stop('divisions argument must be TRUE/FALSE.')}
+
   f <- bearing_area(x)
 
   xval <- environment(f)$y
@@ -74,7 +79,7 @@ plot_ba_curve <- function(x, divisions = FALSE) {
   }
 }
 
-#' Finds the flattest part of the Bearing Area curve.
+#' Finds the Flattest Part of the Bearing Area Curve
 #'
 #' Locates the flattest x percentage of the Bearing Area
 #' curve. Meant to locate the flattest 40 percent of the
@@ -101,6 +106,11 @@ plot_ba_curve <- function(x, divisions = FALSE) {
 #' bf_line <- line_data[[1]]
 #' @export
 find_flat <- function(x, perc = 0.4) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+  if(class(perc) != 'numeric') {stop('perc must be numeric.')}
+  if(length(perc) > 1) {stop('too many values supplied to perc.')}
+  if(perc > 1 | perc < 0) {stop('perc must be between 0 and 1.')}
+
   f <- bearing_area(x)
 
   xval <- environment(f)$y
@@ -139,7 +149,7 @@ find_flat <- function(x, perc = 0.4) {
   return(list(ls_line, pred_data, ls_int_high, ls_int_low, Smr1, Smr2))
 }
 
-#' Value of the bearing area curve at a specified value.
+#' Value of the Bearing Area Curve at a Specified Value
 #'
 #' Determines the value of the bearing area curve for a
 #' specific value along the x-axis (\code{xval}).
@@ -157,6 +167,11 @@ find_flat <- function(x, perc = 0.4) {
 #' val <- height_ba(normforest, 0.4)
 #' @export
 height_ba <- function(x, xval) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+  if(class(xval) != 'numeric') {stop('xval must be numeric.')}
+  if(length(xval) > 1) {stop('too many values supplied to xval.')}
+  if(xval > 1 | xval < 0) {stop('xval must be between 0 and 1.')}
+
   f <- bearing_area(x)
 
   val <- (1 - stats::quantile(f, probs = c(xval))[[1]])
@@ -164,7 +179,7 @@ height_ba <- function(x, xval) {
   return(val)
 }
 
-#' Height intervals of the bearing area curve for a raster.
+#' Height Intervals of the Bearing Area Curve for a Raster
 #'
 #' Determines the height interval (height distance) for
 #' points along the bearing area curve as defined by
@@ -187,6 +202,16 @@ height_ba <- function(x, xval) {
 #' val <- sdc(normforest, 0.1, 0.4)
 #' @export
 sdc <- function(x, low, high) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+  if(class(low) != 'numeric') {stop('low value must be numeric.')}
+  if(length(low) > 1) {stop('too many values supplied to low.')}
+  if(low > 1 | low < 0) {stop('low value must be between 0 and 1.')}
+  if(class(high) != 'numeric') {stop('high value must be numeric.')}
+  if(length(high) > 1) {stop('too many values supplied to high.')}
+  if(high > 1 | high < 0) {stop('high value must be between 0 and 1.')}
+  if(high <= low) {stop('high value must be greater than low value.')}
+
+
   val_low <- height_ba(x, low)
   val_high <- height_ba(x, high)
 
@@ -195,7 +220,7 @@ sdc <- function(x, low, high) {
   return(val)
 }
 
-#' Surface bearing index of a raster.
+#' Surface Bearing Index of a Raster
 #'
 #' Determines the surface bearing index (Sbi), calculated as the ratio
 #' of root mean square roughness (Sq) to height at 5\%
@@ -211,6 +236,8 @@ sdc <- function(x, low, high) {
 #' Sbi <- sbi(normforest)
 #' @export
 sbi <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+
   Sq <- sq(x)
   z05 <- height_ba(x, 0.05)
 
@@ -219,7 +246,7 @@ sbi <- function(x) {
   return(val)
 }
 
-#' Valley fluid retention index of a raster.
+#' Valley Fluid Retention Index of a Raster
 #'
 #' Determines the valley fluid retention index (Svi). This
 #' value is the void volume (area under the bearing area
@@ -237,6 +264,8 @@ sbi <- function(x) {
 #' Svi <- svi(normforest)
 #' @export
 svi <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+
   f <- bearing_area(x)
 
   val <- area_above(f = f, b = 1, a = 0.8, n = 500)
@@ -244,7 +273,7 @@ svi <- function(x) {
   return(val)
 }
 
-#' Core fluid retention index of a raster.
+#' Core Fluid Retention Index of a Raster
 #'
 #' Determines the core fluid retention index (Sci). This
 #' value is the void volume (area under the bearing area
@@ -262,6 +291,8 @@ svi <- function(x) {
 #' Sci <- sci(normforest)
 #' @export
 sci <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+
   f <- bearing_area(x)
 
   core_above <- area_above(f = f, b = 1, a = 0.05, n = 1000)
@@ -273,7 +304,7 @@ sci <- function(x) {
   return(val)
 }
 
-#' Core roughness depth of a raster.
+#' Core Roughness Depth of a Raster
 #'
 #' Determines the core roughness depth (Sk), the
 #' height difference between y values of the
@@ -292,6 +323,8 @@ sci <- function(x) {
 #' Sk <- sk(normforest)
 #' @export
 sk <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+
   line_info <- find_flat(x, perc = 0.4)
 
   ls_int_high <- line_info[[3]]
@@ -302,7 +335,7 @@ sk <- function(x) {
   return(val)
 }
 
-#' Reduced valley depth of a raster.
+#' Reduced Valley Depth of a Raster
 #'
 #' Determines the reduced valley depth (Svk), the
 #' height difference between y value of the lowest
@@ -321,6 +354,8 @@ sk <- function(x) {
 #' Svk <- svk(normforest)
 #' @export
 svk <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+
   # find the bearing area curve
   f <- bearing_area(x)
 
@@ -334,7 +369,7 @@ svk <- function(x) {
   return(val)
 }
 
-#' Reduced peak height of a raster.
+#' Reduced Peak Height of a Raster
 #'
 #' Determines the reduced peak height (Spk), the
 #' height difference between the maximum y value of the
@@ -353,6 +388,8 @@ svk <- function(x) {
 #' Spk <- spk(normforest)
 #' @export
 spk <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+
   # find the bearing area curve
   f <- bearing_area(x)
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/sdq.R
 \name{sdq6}
 \alias{sdq6}
-\title{Root area mean square slope of surface.}
+\title{Root Area Mean Square Slope of Surface}
 \usage{
 sdq6(x)
 }

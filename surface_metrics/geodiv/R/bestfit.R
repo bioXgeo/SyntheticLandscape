@@ -1,12 +1,12 @@
 # functions to find the best fit line for forty percent of slope with lowest slope
 
-#' Determines the slopes along a the bearing area curve.
+#' Determines the Slopes Along the Bearing Area Curve
 #'
 #' Calculates the slopes along the bearing area curve
 #' of a raster. Slopes are determined at points x,
 #' from point x - h to x + h.
 #'
-#' @param x A raster.
+#' @param x A vector of x values.
 #' @param h Spacing before and after each point.
 #' 2h is the distance over which slopes are calculated.
 #' @param f Bearing area function as calculated with
@@ -23,6 +23,12 @@
 #' slopes <- slopecalc(x = x, h = 0.01, f = ba)
 #' @export
 slopecalc <- function(x, h, f) {
+  if(class(x) != 'numeric') {stop('x must be numeric.')}
+  if(class(h) != 'numeric') {stop('h must be numeric.')}
+  if(sum(class(f) %in% c('ecdf', 'stepfun', 'function')) != 3) {stop('f was not produced with bearing_area function.')}
+  if(length(h) > 1) {stop('too many values for h.')}
+  if(h >= 1 | h <= 0) {stop('h must be less than 1 and greater than 0.')}
+
   xplus <- x + h
   xminus <- x - h
   x <- x
@@ -53,8 +59,8 @@ slopecalc <- function(x, h, f) {
   return(slopes)
 }
 
-#' Determines the average slope along larger segments of
-#' the bearing area curve of a raster.
+#' Determines the Average Slope Along Larger Segments of
+#' the Bearing Area Curve of a Raster
 #'
 #' Calculates the average slope over every segment
 #' of a specified percentage length of the total bearing
@@ -82,6 +88,12 @@ slopecalc <- function(x, h, f) {
 #' slopes_forty <- slopemeans(slopes = slopes, l = 0.4)
 #' @export
 slopemeans <- function(slopes, l = 0.4) {
+  if(class(slopes) != 'data.frame') {stop('slopes must be a dataframe.')}
+  if(class(l) != 'numeric') {stop('l must be numeric.')}
+  if(length(l) > 1) {stop('too many values for l.')}
+  if(l >= 1 | l <= 0) {stop('l must be less than 1 and greater than 0.')}
+  if(sum(names(slopes) %in% c('slope', 'x')) != 2) {stop('incorrect column names for slopes dataframe -- need slope and x.')}
+
   x <- slopes$x
   slope <- slopes$slope
   length <- length(x) * l

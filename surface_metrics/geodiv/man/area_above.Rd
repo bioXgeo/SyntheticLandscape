@@ -2,7 +2,7 @@
 % Please edit documentation in R/simpsons.R
 \name{area_above}
 \alias{area_above}
-\title{Area above the bearing area curve.}
+\title{Area Above the Bearing Area Curve}
 \usage{
 area_above(f, a, b, n = 100)
 }

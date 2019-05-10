@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilities.R
 \name{.rad2deg}
 \alias{.rad2deg}
-\title{Radian to degree conversion.}
+\title{Radian to Degree Conversion}
 \usage{
 .rad2deg(x)
 }

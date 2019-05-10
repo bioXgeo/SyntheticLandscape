@@ -2,7 +2,7 @@
 % Please edit documentation in R/localsurface.R
 \name{findvalleys}
 \alias{findvalleys}
-\title{Find local valleys.}
+\title{Find Local Valleys}
 \usage{
 findvalleys(x)
 }

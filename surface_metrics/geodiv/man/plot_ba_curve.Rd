@@ -2,7 +2,7 @@
 % Please edit documentation in R/bearingarea.R
 \name{plot_ba_curve}
 \alias{plot_ba_curve}
-\title{Plots the Bearing Area curve.}
+\title{Plots the Bearing Area Curve}
 \usage{
 plot_ba_curve(x, divisions = FALSE)
 }

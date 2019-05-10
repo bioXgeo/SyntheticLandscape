@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilities.R
 \name{remove_plane}
 \alias{remove_plane}
-\title{Removes the best fit polynomial plane from a raster.}
+\title{Removes the Best Fit Polynomial Plane from a Raster}
 \usage{
 remove_plane(x)
 }

@@ -3,23 +3,39 @@
 # This tests all functions associated with the geodiv package and writes
 # errors to a log file.
 
-# Instructions (all steps are coded out below):
+# Instructions (duplicated from README, steps 3-5 are coded out below):
 # 1: Load geodiv: clone git repository onto local machine
-# 2: Run geodiv using both the 'normforest' and 'orforest' rasters included
+#    git repo: https://github.com/bioXgeo/SyntheticLandscape
+# 2: open the geodiv R project (geodiv.Rproj) in the geodiv folder
+# 3: Run geodiv using both the 'normforest' and 'orforest' rasters included
 #    in the package.
-# 3: Run geodiv with a test raster of your choosing (make sure that it is
+# 4: Run geodiv with a test raster of your choosing (make sure that it is
 #    fairly small).
-# 4: Add resulting log files to the geodiv Google Drive directory.
-# 5: Send any ideas that people might want to do extra.
+# 5: Run the r cmd check
+# 6: Add resulting log file (geodiv_logfile.txt) to the geodiv Google Drive directory.
+# 7: If you have any ideas for extra components for this or the next release,
+#    add those to the ideas doc on Google Drive.
+
+
+# change paths ------------------------------------------------------------
+
+logfile_path <- '/home/annie/Desktop/geodiv_logfile_ACS.txt' # change end initials
+otherrast_path <- # insert path to new (small) raster here
 
 # load geodiv -------------------------------------------------------------
 
-sink('/home/annie/Desktop/geodiv_logfile.txt', split = TRUE)
+sink(logfile_path, split = TRUE) # change the path
 
 library(devtools)
 library(roxygen2)
 
 devtools::load_all()
+
+# write system information ------------------------------------------------
+
+cat('System information: ', '\n')
+Sys.info()
+cat('\n')
 
 # function to run all geodiv functions ------------------------------------
 
@@ -252,11 +268,9 @@ print(normforest)
 # run all functions
 run_all(normforest)
 
-sink()
-
 # test for another raster -------------------------------------------------
 
-rast <- raster('filename') # add file here
+rast <- raster(otherrast_path)
 cat('other raster: ', '\n')
 print(rast)
 

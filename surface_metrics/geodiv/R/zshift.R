@@ -1,4 +1,4 @@
-#' Offset raster values.
+#' Offset Raster Values
 #'
 #' Calculates a matrix of raster values with a negative
 #' or positive, x or y, offset.
@@ -40,6 +40,15 @@ zshift <- function(r, xdist = 0, ydist = 0, xrm, yrm, scale = FALSE) {
   # need to provide at least one of xdist or ydist
   try(if(missing(xrm)) (xrm = xdist))
   try(if(missing(yrm)) (yrm = ydist))
+
+  if(class(r) != 'RasterLayer') {stop('r must be a raster.')}
+  if(class(xdist) != 'numeric') {stop('xdist must be numeric.')}
+  if(class(ydist) != 'numeric') {stop('ydist must be numeric.')}
+  if(class(xrm) != 'numeric') {stop('xrm must be numeric.')}
+  if(class(yrm) != 'numeric') {stop('yrm must be numeric.')}
+  if(class(scale) != 'logical') {stop('scale must be logical.')}
+  if(length(xdist) > 1) {stop('too many values supplied to xdist.')}
+  if(length(ydist) > 1) {stop('too many values supplied to ydist.')}
 
   # get dimensions
   N <- dim(r)[1] # rows

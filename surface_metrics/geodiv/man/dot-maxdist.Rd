@@ -2,7 +2,7 @@
 % Please edit documentation in R/aacf.R
 \name{.maxdist}
 \alias{.maxdist}
-\title{Estimate maximum correlation length.}
+\title{Estimate Maximum Correlation Length}
 \usage{
 .maxdist(threshold, Aalpha, aacfimg)
 }

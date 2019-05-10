@@ -2,7 +2,7 @@
 % Please edit documentation in R/aacf.R
 \name{.mindist}
 \alias{.mindist}
-\title{Estimate minimum correlation length.}
+\title{Estimate Minimum Correlation Length}
 \usage{
 .mindist(threshold, Aalpha, aacfimg)
 }

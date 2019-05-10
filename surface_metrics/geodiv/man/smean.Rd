@@ -2,7 +2,7 @@
 % Please edit documentation in R/basics.R
 \name{smean}
 \alias{smean}
-\title{Calculates the mean peak height of a surface raster.}
+\title{Calculates the Mean Peak Height of a Surface Raster}
 \usage{
 smean(x)
 }

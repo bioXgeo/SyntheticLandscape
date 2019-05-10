@@ -2,7 +2,7 @@
 % Please edit documentation in R/localsurface.R
 \name{findpeaks}
 \alias{findpeaks}
-\title{Find local peaks.}
+\title{Find Local Peaks}
 \usage{
 findpeaks(x)
 }

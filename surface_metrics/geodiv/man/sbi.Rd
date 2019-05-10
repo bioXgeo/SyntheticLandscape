@@ -2,7 +2,7 @@
 % Please edit documentation in R/bearingarea.R
 \name{sbi}
 \alias{sbi}
-\title{Surface bearing index of a raster.}
+\title{Surface Bearing Index of a Raster}
 \usage{
 sbi(x)
 }

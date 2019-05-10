@@ -2,7 +2,7 @@
 % Please edit documentation in R/zshift.R
 \name{zshift}
 \alias{zshift}
-\title{Offset raster values.}
+\title{Offset Raster Values}
 \usage{
 zshift(r, xdist = 0, ydist = 0, xrm, yrm, scale = FALSE)
 }

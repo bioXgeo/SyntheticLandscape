@@ -2,7 +2,7 @@
 % Please edit documentation in R/fourier.R
 \name{sfd}
 \alias{sfd}
-\title{Calculates the fractal dimension.}
+\title{Calculates the Fractal Dimension}
 \usage{
 sfd(x)
 }

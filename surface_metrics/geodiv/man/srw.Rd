@@ -2,7 +2,7 @@
 % Please edit documentation in R/fourier.R
 \name{srw}
 \alias{srw}
-\title{Radial wavelength metrics.}
+\title{Radial Wavelength Metrics}
 \usage{
 srw(x, plot = FALSE)
 }

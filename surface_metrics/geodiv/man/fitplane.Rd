@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilities.R
 \name{fitplane}
 \alias{fitplane}
-\title{Calculate a least squares polynomial plane.}
+\title{Calculate a Least Squares Polynomial Plane}
 \usage{
 fitplane(x, order)
 }

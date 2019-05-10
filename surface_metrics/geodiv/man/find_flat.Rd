@@ -2,7 +2,7 @@
 % Please edit documentation in R/bearingarea.R
 \name{find_flat}
 \alias{find_flat}
-\title{Finds the flattest part of the Bearing Area curve.}
+\title{Finds the Flattest Part of the Bearing Area Curve}
 \usage{
 find_flat(x, perc = 0.4)
 }

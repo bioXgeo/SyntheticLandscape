@@ -2,7 +2,7 @@
 % Please edit documentation in R/bearingarea.R
 \name{sci}
 \alias{sci}
-\title{Core fluid retention index of a raster.}
+\title{Core Fluid Retention Index of a Raster}
 \usage{
 sci(x)
 }

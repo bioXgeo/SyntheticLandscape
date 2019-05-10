@@ -2,7 +2,7 @@
 % Please edit documentation in R/fourier.R
 \name{std}
 \alias{std}
-\title{Texture direction metrics.}
+\title{Texture Direction Metrics}
 \usage{
 std(x, plot = FALSE)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/surfacearea.R
 \name{surface_area}
 \alias{surface_area}
-\title{Surface area of a raster.}
+\title{Surface Area of a Raster}
 \usage{
 surface_area(x)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/bearingarea.R
 \name{sdc}
 \alias{sdc}
-\title{Height intervals of the bearing area curve for a raster.}
+\title{Height Intervals of the Bearing Area Curve for a Raster}
 \usage{
 sdc(x, low, high)
 }

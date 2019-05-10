@@ -1,4 +1,4 @@
-#' Radian to degree conversion.
+#' Radian to Degree Conversion
 #'
 #' Converts radian value(s) to degrees.
 #'
@@ -6,7 +6,7 @@
 #' @return Numeric of degree value(s).
 .rad2deg <- function(x) {(x * 180) / (pi)}
 
-#' Degree to radian conversion.
+#' Degree to Radian Conversion
 #'
 #' Converts degree value(s) to radians.
 #'
@@ -14,7 +14,7 @@
 #' @return Numeric of degree value(s).
 .deg2rad <- function(x) {(x * pi) / (180)}
 
-#' Calculate a least squares polynomial plane.
+#' Calculate a Least Squares Polynomial Plane
 #'
 #' Fits a polynomial plane of order \code{n} to a raster
 #' image.
@@ -39,6 +39,14 @@
 #' plot(x)
 #' @export
 fitplane <- function(x, order) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+  if(class(order) == 'numeric') {
+    warning('numeric order, converting to integer.')
+    order <- as.integer(floor(order))}
+  if(class(order) != 'integer') {stop('order must be integer.')}
+  if(length(order) > 1) {stop('too many values supplied to order.')}
+  if(order <= 0) {stop('order must be >= 1.')}
+
   # extract coordinates and values
   xcoord <- sp::coordinates(x)[, 1]
   ycoord <- sp::coordinates(x)[, 2]
@@ -53,7 +61,7 @@ fitplane <- function(x, order) {
   return(surfvals)
 }
 
-#' Finds the best fit polynomial plane.
+#' Finds the Best Fit Polynomial Plane
 #'
 #' Finds the best fit polynomial plane for a raster image. This
 #' function tests least squares polynomial fits with orders of
@@ -76,6 +84,8 @@ fitplane <- function(x, order) {
 #' plot(poly)
 #' @export
 bestfitplane <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+
   # fit least squares plane for polynomials from orders 2 - 3
   mods <- lapply(seq(2, 3), FUN = function(i) fitplane(x, order = i))
 
@@ -101,7 +111,7 @@ bestfitplane <- function(x) {
   return(bfx)
 }
 
-#' Removes the best fit polynomial plane from a raster.
+#' Removes the Best Fit Polynomial Plane from a Raster
 #'
 #' Finds the best fit polynomial plane for a raster image and
 #' subtracts it from the actual raster values. The remaining
@@ -126,6 +136,8 @@ bestfitplane <- function(x) {
 #' plot(new_rast)
 #' @export
 remove_plane <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+
   bfx <- bestfitplane(x)
 
   errors <- x - bfx # higher = above plane, lower = below plane

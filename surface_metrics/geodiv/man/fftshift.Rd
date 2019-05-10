@@ -2,7 +2,7 @@
 % Please edit documentation in R/fftshift.R
 \name{fftshift}
 \alias{fftshift}
-\title{Fourier transform shift.}
+\title{Fourier Transform Shift}
 \usage{
 fftshift(x, dim = -1)
 }

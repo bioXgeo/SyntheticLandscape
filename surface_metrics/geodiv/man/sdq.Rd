@@ -2,7 +2,7 @@
 % Please edit documentation in R/sdq.R
 \name{sdq}
 \alias{sdq}
-\title{Root mean square slope of surface.}
+\title{Root Mean Square Slope of Surface}
 \usage{
 sdq(x)
 }

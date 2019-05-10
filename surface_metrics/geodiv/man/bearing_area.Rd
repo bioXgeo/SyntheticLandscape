@@ -2,7 +2,7 @@
 % Please edit documentation in R/bearingarea.R
 \name{bearing_area}
 \alias{bearing_area}
-\title{Calculates the rotated Bearing Area curve.}
+\title{Calculates the Rotated Bearing Area Curve}
 \usage{
 bearing_area(x)
 }

@@ -2,7 +2,7 @@
 # from https://www.ntmdt-si.ru/data/media/files/manuals/image_analisys_p9_nov12.e.pdf
 # diagram for actual equations used: file:///home/annie/Downloads/9783642364570-c2%20(1).pdf, page 17/30
 
-#' Surface area of a flattened raster.
+#' Surface Area of a Flattened Raster
 #'
 #' Calculates the surface area of a flat raster with the
 #' same x, y bounds as the study raster.
@@ -24,6 +24,8 @@
 #' flatsa(normforest)
 #' @export
 flatsa <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+
   # In case the value area of the raster is an odd shape,
   # calculate the surface area of the flattened raster in the same way
   # as actual surface area
@@ -80,7 +82,7 @@ flatsa <- function(x) {
   return(sa)
 }
 
-#' Surface area of a raster.
+#' Surface Area of a Raster
 #'
 #' Calculates the scaled surface area of a raster.
 #'
@@ -104,6 +106,8 @@ flatsa <- function(x) {
 #' surface_area(normforest)
 #' @export
 surface_area <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+
   # get dimensions
   N <- dim(x)[1] # rows
   M <- dim(x)[2] # cols
@@ -150,7 +154,7 @@ surface_area <- function(x) {
   return(sa)
 }
 
-#' Surface area ratio.
+#' Surface Area Ratio
 #'
 #' Calculates the surface area ratio of a raster. This is the
 #' ratio of a flat surface to the actual surface.
@@ -170,6 +174,7 @@ surface_area <- function(x) {
 #' Sdr <- sdr(normforest)
 #' @export
 sdr <- function(x) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
 
   # get area of flat plane
   flat_area <- flatsa(x)

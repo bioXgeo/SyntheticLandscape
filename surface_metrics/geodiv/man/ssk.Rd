@@ -2,7 +2,7 @@
 % Please edit documentation in R/basics.R
 \name{ssk}
 \alias{ssk}
-\title{Calculates the skewness of raster values.}
+\title{Calculates the Skewness of Raster Values}
 \usage{
 ssk(x, adj = TRUE)
 }
