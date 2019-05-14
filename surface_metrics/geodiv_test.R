@@ -15,7 +15,8 @@
 # 6: Add resulting log file (geodiv_logfile.txt) to the geodiv Google Drive directory.
 # 7: If you have any ideas for extra components for this or the next release,
 #    add those to the ideas doc on Google Drive.
-
+# 8: If you try anything else out and find an issue, add it to the issues doc on
+#    Google Drive.
 
 # change paths ------------------------------------------------------------
 
@@ -24,7 +25,7 @@ otherrast_path <- # insert path to new (small) raster here
 
 # load geodiv -------------------------------------------------------------
 
-sink(logfile_path, split = TRUE) # change the path
+sink(logfile_path, split = TRUE)
 
 library(devtools)
 library(roxygen2)

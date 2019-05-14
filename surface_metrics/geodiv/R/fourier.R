@@ -192,14 +192,21 @@ srw <- function(x, plot = FALSE) {
   origin <- c(mean(sp::coordinates(amp_img)[,1]), ymin(amp_img))
 
   # calculate half circles extending from origin
+  if ((0.5 * ncol(amp_img)) <= 100) {
+    ncircles <- floor(0.5 * ncol(amp_img))
+  } else {
+    ncircles <- 100
+  }
   nv <- 100
   angle.inc <- 2 * pi / nv
   angles <- seq(0, 2 * pi - angle.inc, by = angle.inc)
-  radius <- seq(0, half_dist, half_dist / 80)
+  radius <- seq(0, half_dist, length.out = ncircles)
   linex <- unlist(lapply(seq(1, length(radius)), function(x) origin[1] + radius[x] * cos(angles)))
   liney <- unlist(lapply(seq(1, length(radius)), function(x) origin[2] + radius[x] * sin(angles)))
-  linelist <- lapply(seq(1, length(linex), 100),
-                     FUN = function(i) sp::Lines(list(sp::Line(cbind(linex[i:(i + 99)], liney[i:(i + 99)]))), ID = paste('p', i, sep = '')))
+  # number points per line
+  npts <- length(linex) / ncircles
+  linelist <- lapply(round(seq(1, length(linex) - npts, length.out = ncircles)),
+                     FUN = function(i) sp::Lines(list(sp::Line(cbind(linex[i:(i + (npts - 1))], liney[i:(i + (npts - 1))]))), ID = paste('p', i, sep = '')))
   lines <- sp::SpatialLines(linelist, proj4string = sp::CRS(sp::proj4string(amp_img)))
 
   # plot and get amplitude sums within each radius
