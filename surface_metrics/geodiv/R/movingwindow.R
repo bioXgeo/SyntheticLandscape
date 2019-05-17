@@ -21,6 +21,11 @@
 #' run the calculations. Defaults to all available, minus 1.
 #' @return A raster with pixel values representative of the metric
 #' value for the window surrounding that pixel.
+#' @details Metrics available:
+#' \enumerate {
+#'    \item{\code{'sa'}: average surface roughness}
+#'    \item{\code{'sq'}: root mean square roughness}
+#' }
 #' @examples
 #' library(raster)
 #'
@@ -37,11 +42,52 @@
 texture_image <- function(x, window_type = 'square', size = 11, epsg_proj = 5070, metric, threshold = NULL,
                           low = NULL, high = NULL, parallel = TRUE, ncores = NULL){
 
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+  if(class(window_type) != 'character') {stop('window_type must be a string.')}
+  if(class(size) != 'numeric') {stop('size must be numeric.')}
+  if(class(epsg_proj) != 'numeric') {stop('epsg_proj must be numeric.')}
+  if(class(rownum) != 'numeric' & class(rownum) != 'integer') {stop('rownum must be numeric or integer.')}
+  if(class(colnum) != 'numeric' & class(colnum) != 'integer') {stop('colnum must be numeric or integer.')}
+  if(class(metric) != 'character') {stop('metric must be a character.')}
+  if(!is.null(threshold) & class(threshold) != 'numeric') {stop('threshold must be numeric.')}
+  if(!is.null(low) & class(low) != 'numeric') {stop('low must be numeric.')}
+  if(!is.null(high) & class(high) != 'numeric') {stop('high must be numeric.')}
+
+  if(!is.null(low) & is.null(high)) {stop('high value is required if low value is given.')}
+  if(!is.null(high) & is.null(low)) {stop('high value is required if low value is given.')}
+  if(!is.null(threshold) & length(threshold) > 1) {stop('too many values provided to threshold.')}
+  if(length(rownum) > 1) {stop('too many values provided to rownum.')}
+  if(length(colnum) > 1) {stop('too many values provided to colnum.')}
+  if(length(metric) > 1) {stop('too many values provided for metric.')}
+  if(length(epsg_proj) > 1) {stop('too many values provided to epsg_proj.')}
+  if(length(size) > 1) {stop('too many values provided to size.')}
+  if(length(window_type) > 1) {stop('too many values provided to window_type.')}
+
+  if(!(metric %in% c('sa', 'sq', 's10z', 'sdq', 'sdq6', 'sdr', 'sbi', 'sci', 'ssk_adj',
+                     'ssk', 'sku_exc', 'sku', 'sds', 'sfd', 'srw', 'srwi', 'shw', 'std',
+                     'stdi', 'svi', 'str', 'ssc', 'sv', 'sph', 'sk', 'smean', 'spk', 'svk',
+                     'scl', 'sdc'))) {stop('invalid metric argument.')}
+
+  if(missing(ncores)) {ncores <- parallel::detectCores() - 1}
+
   # data frame of x, y locations
   coords <- data.frame(xyFromCell(x, 1:ncell(x)))
 
-  # get list of # total pixels
+  # get list of # total pixels, break up into smaller lists (by number of cores available)
   pixlist <- seq(1, length(x), 1)
+  seg_length <- ceiling(length(x) / ncores)
+  segment <- ceiling(length(x) / seg_length)
+  new_pixlist <- vector('list', segment)
+  i <- 1
+  while(i <= segment) {
+    newi <- ceiling(seq(1, length(x), seg_length))[i]
+    if (i < segment) {
+      new_pixlist[[i]] <- seq(newi, (newi - 1) + seg_length, 1)
+    } else {
+      new_pixlist[[i]] <- seq(newi, length(x), 1)
+    }
+    i <- i + 1
+  }
 
   # output raster
   out <- x
@@ -60,33 +106,38 @@ texture_image <- function(x, window_type = 'square', size = 11, epsg_proj = 5070
       }
     }
   } else {
-    if(missing(ncores)) {ncores <- parallel::detectCores() - 1}
 
     # make and start cluster
     try(snow::stopCluster(cl), silent = TRUE)
     cl <- snow::makeCluster(ncores)
-    snow::makeSOCKcluster(cl)
+    doSNOW::registerDoSNOW(cl)
     snow::clusterExport(cl = cl, list = list('x', 'out', 'coords', 'size',
                                              'window_type', 'epsg_proj',
-                                             'metric', 'threshold', 'low', 'high'))
+                                             'metric', 'threshold', 'low', 'high'),
+                        envir = environment())
     invisible(snow::clusterEvalQ(cl, {
       library(raster)
       library(devtools)
       library(sf)
       devtools::load_all()}))
-    result <- snow::parLapply(cl, pixlist[1:50], function(i) {
-      pt_coords <- coords[i, ]
-      rownum <- rowFromCell(x, i)
-      colnum <- colFromCell(x, i)
+    # for each list in new_pixlist, run a for loop over all values
+    result <- snow::parLapply(cl, new_pixlist, function(inds) {
+      outvals <- c()
+      for (i in inds) {
+        pt_coords <- coords[i, ]
+        rownum <- rowFromCell(x, i)
+        colnum <- colFromCell(x, i)
 
-      if (window_type == 'square') {
-        outval <- window_metric(x, 'square', size, epsg_proj = epsg_proj, rownum, colnum, metric, threshold, low, high)
-      } else {
-        outval <- window_metric(x, 'circle', size, epsg_proj = epsg_proj, rownum, colnum, metric, threshold, low, high)
+        if (window_type == 'square') {
+          outval <- window_metric(x, 'square', size, epsg_proj = epsg_proj, rownum, colnum, metric, threshold, low, high)
+        } else {
+          outval <- window_metric(x, 'circle', size, epsg_proj = epsg_proj, rownum, colnum, metric, threshold, low, high)
+        }
+        outvals <- c(outvals, outval)
       }
-      return(outval)
+      return(outvals)
     })
-    stopCluster(cl)
+    snow::stopCluster(cl)
   }
 
   out <- setValues(out, unlist(result))

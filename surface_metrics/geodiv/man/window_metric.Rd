@@ -4,11 +4,13 @@
 \alias{window_metric}
 \title{Calculate Texture Metric for Single Pixel}
 \usage{
-window_metric(x, window = "square", size = 3, epsg_proj = NULL,
-  rownum, colnum, metric)
+window_metric(x, window_type = "square", size = 11, epsg_proj = 5070,
+  rownum, colnum, metric, threshold = NULL, low = NULL, high = NULL)
 }
 \arguments{
 \item{x}{A raster.}
+
+\item{window_type}{Character. Type of window, either circular or square.}
 
 \item{size}{Numeric. Size of window, in number of pixels on each
 side for square windows (must be an odd value), or distance from
@@ -24,7 +26,12 @@ crop raster to each circular window.}
 \item{metric}{Character. Metric to calculate for each window. Metrics
 are listed below.}
 
-\item{window_type}{Character. Type of window, either circular or square.}
+\item{threshold}{Numeric. Value of autocorrelation distance (0 - 1), if
+calculating \code{scl} or \code{str}.}
+
+\item{low}{Numeric. Low value (0 - 1) if calculating \code{sdc}.}
+
+\item{high}{Numeric. High value (0 - 1) if calculating \code{sdc}.}
 }
 \value{
 A raster with pixel values representative of the metric

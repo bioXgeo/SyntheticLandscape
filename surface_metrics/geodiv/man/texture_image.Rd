@@ -4,8 +4,9 @@
 \alias{texture_image}
 \title{Calculate Texture Metrics per Pixel}
 \usage{
-texture_image(x, window_type = "square", size = 3, epsg_proj = 5070,
-  metric, parallel = TRUE, ncores = NULL)
+texture_image(x, window_type = "square", size = 11, epsg_proj = 5070,
+  metric, threshold = NULL, low = NULL, high = NULL,
+  parallel = TRUE, ncores = NULL)
 }
 \arguments{
 \item{x}{A raster.}
@@ -37,6 +38,12 @@ Calculates the various texture metrics over windows centered
 on individual pixels. This creates a continuous surface of the
 texture metric.
 }
+\details{
+Metrics available:
+\enumerate {
+   \item{\code{'sa'}: }
+}
+}
 \examples{
 library(raster)
 
@@ -45,7 +52,7 @@ data(normforest)
 
 # get a surface of root mean square roughness
 sq_img <- texture_image(x = normforest, window = 'square',
-size = 11, epsg_proj = 5070, metric = 'sq')
+size = 11, epsg_proj = 5070, metric = 'sq', parallel = TRUE)
 
 # plot the result
 plot(sq_img)
