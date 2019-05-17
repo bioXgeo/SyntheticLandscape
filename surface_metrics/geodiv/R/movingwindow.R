@@ -29,13 +29,13 @@
 #'
 #' # get a surface of root mean square roughness
 #' sq_img <- texture_image(x = normforest, window = 'square',
-#' size = 11, epsg_proj = 5070, metric = 'sq')
+#' size = 11, epsg_proj = 5070, metric = 'sq', parallel = TRUE)
 #'
 #' # plot the result
 #' plot(sq_img)
 #' @export
-texture_image <- function(x, window_type = 'square', size = 3, epsg_proj = 5070, metric,
-                          parallel = TRUE, ncores = NULL){
+texture_image <- function(x, window_type = 'square', size = 11, epsg_proj = 5070, metric, threshold = NULL,
+                          low = NULL, high = NULL, parallel = TRUE, ncores = NULL){
 
   # data frame of x, y locations
   coords <- data.frame(xyFromCell(x, 1:ncell(x)))
@@ -54,40 +54,43 @@ texture_image <- function(x, window_type = 'square', size = 3, epsg_proj = 5070,
       colnum <- colFromCell(x, i)
 
       if (window_type == 'square') {
-        out[rownum, colnum] <- window_metric(x, 'square', size, epsg_proj = 5070, rownum, colnum, metric)
+        out[rownum, colnum] <- window_metric(x, 'square', size, epsg_proj = epsg_proj, rownum, colnum, metric, threshold, low, high)
       } else {
-        out[rownum, colnum] <- window_metric(x, 'circle', size, epsg_proj = 5070, rownum, colnum, metric)
+        out[rownum, colnum] <- window_metric(x, 'circle', size, epsg_proj = epsg_proj, rownum, colnum, metric, threshold, low, high)
       }
     }
   } else {
-    if(missing(ncores)) {ncores <- detectCores() - 1}
+    if(missing(ncores)) {ncores <- parallel::detectCores() - 1}
 
     # make and start cluster
-    stopCluster(cl)
-    cl <- makeCluster(ncores)
-    registerDoSNOW(cl)
+    try(snow::stopCluster(cl), silent = TRUE)
+    cl <- snow::makeCluster(ncores)
+    snow::makeSOCKcluster(cl)
     snow::clusterExport(cl = cl, list = list('x', 'out', 'coords', 'size',
                                              'window_type', 'epsg_proj',
-                                             'metric', 'window_metric'))
-    clusterEvalQ(cl, {
+                                             'metric', 'threshold', 'low', 'high'))
+    invisible(snow::clusterEvalQ(cl, {
       library(raster)
       library(devtools)
       library(sf)
-      devtools::load_all()})
-    result <- parLapply(cl, pixlist[1:500], function(i) {
+      devtools::load_all()}))
+    result <- snow::parLapply(cl, pixlist[1:50], function(i) {
       pt_coords <- coords[i, ]
       rownum <- rowFromCell(x, i)
       colnum <- colFromCell(x, i)
 
       if (window_type == 'square') {
-        outval <- window_metric(x, 'square', size, epsg_proj = 5070, rownum, colnum, metric)
+        outval <- window_metric(x, 'square', size, epsg_proj = epsg_proj, rownum, colnum, metric, threshold, low, high)
       } else {
-        outval <- window_metric(x, 'circle', size, epsg_proj = 5070, rownum, colnum, metric)
+        outval <- window_metric(x, 'circle', size, epsg_proj = epsg_proj, rownum, colnum, metric, threshold, low, high)
       }
       return(outval)
     })
     stopCluster(cl)
   }
+
+  out <- setValues(out, unlist(result))
+
   return(out)
 }
 
@@ -107,6 +110,10 @@ texture_image <- function(x, window_type = 'square', size = 3, epsg_proj = 5070,
 #' @param colnum Numeric. Column number of pixel.
 #' @param metric Character. Metric to calculate for each window. Metrics
 #' are listed below.
+#' @param threshold Numeric. Value of autocorrelation distance (0 - 1), if
+#' calculating \code{scl} or \code{str}.
+#' @param low Numeric. Low value (0 - 1) if calculating \code{sdc}.
+#' @param high Numeric. High value (0 - 1) if calculating \code{sdc}.
 #' @return A raster with pixel values representative of the metric
 #' value for the window surrounding that pixel.
 #' @examples
@@ -122,14 +129,41 @@ texture_image <- function(x, window_type = 'square', size = 3, epsg_proj = 5070,
 #' # plot the result
 #' plot(sq_img)
 #' @export
-window_metric <- function(x, window = 'square', size = 3, epsg_proj = NULL,
-                          rownum, colnum, metric) {
-  if (window == 'square') {
+window_metric <- function(x, window_type = 'square', size = 11, epsg_proj = 5070,
+                          rownum, colnum, metric, threshold = NULL, low = NULL, high = NULL) {
+  if(class(x) != 'RasterLayer') {stop('x must be a raster.')}
+  if(class(window_type) != 'character') {stop('window_type must be a string.')}
+  if(class(size) != 'numeric') {stop('size must be numeric.')}
+  if(class(epsg_proj) != 'numeric') {stop('epsg_proj must be numeric.')}
+  if(class(rownum) != 'numeric' & class(rownum) != 'integer') {stop('rownum must be numeric or integer.')}
+  if(class(colnum) != 'numeric' & class(colnum) != 'integer') {stop('colnum must be numeric or integer.')}
+  if(class(metric) != 'character') {stop('metric must be a character.')}
+  if(!is.null(threshold) & class(threshold) != 'numeric') {stop('threshold must be numeric.')}
+  if(!is.null(low) & class(low) != 'numeric') {stop('low must be numeric.')}
+  if(!is.null(high) & class(high) != 'numeric') {stop('high must be numeric.')}
+
+  if(!is.null(low) & is.null(high)) {stop('high value is required if low value is given.')}
+  if(!is.null(high) & is.null(low)) {stop('high value is required if low value is given.')}
+  if(!is.null(threshold) & length(threshold) > 1) {stop('too many values provided to threshold.')}
+  if(length(rownum) > 1) {stop('too many values provided to rownum.')}
+  if(length(colnum) > 1) {stop('too many values provided to colnum.')}
+  if(length(metric) > 1) {stop('too many values provided for metric.')}
+  if(length(epsg_proj) > 1) {stop('too many values provided to epsg_proj.')}
+  if(length(size) > 1) {stop('too many values provided to size.')}
+  if(length(window_type) > 1) {stop('too many values provided to window_type.')}
+
+  if(!(metric %in% c('sa', 'sq', 's10z', 'sdq', 'sdq6', 'sdr', 'sbi', 'sci', 'ssk_adj',
+                     'ssk', 'sku_exc', 'sku', 'sds', 'sfd', 'srw', 'srwi', 'shw', 'std',
+                     'stdi', 'svi', 'str', 'ssc', 'sv', 'sph', 'sk', 'smean', 'spk', 'svk',
+                     'scl', 'sdc'))) {stop('invalid metric argument.')}
+
+  if (window_type == 'square') {
     # change size to distance out from center
     size <- floor(size / 2)
 
-    # extend...
     # continue values to edges to account for edge effect (# pixels radius/edge)
+
+    # first, get edge values that will be extended
     firstrow_vals <- x[1, ]
     firstcol_vals <- x[, 1]
     lastrow_vals <- x[nrow(x), ]
@@ -164,7 +198,7 @@ window_metric <- function(x, window = 'square', size = 3, epsg_proj = NULL,
   } else {
 
     # convert to new proj
-    projx <- projectRaster(x, crs = CRS(st_crs(epsg_proj)$proj4string))
+    projx <- projectRaster(x, crs = sp::CRS(sf::st_crs(epsg_proj)$proj4string))
 
     # get equivalent # pixels of size
     pixeq_size <- ceiling(size / res(projx))[1]
@@ -204,14 +238,15 @@ window_metric <- function(x, window = 'square', size = 3, epsg_proj = NULL,
     pt_coords <- coords[pt_ind, ]
 
     # crop to circle
-    pt_sf <- st_as_sf(pt_coords, coords = c("x", "y"), crs = st_crs(x)) %>%
-      st_transform(epsg_proj)
-    poly_circ <- st_buffer(pt_sf, size)
-    poly_circ <- st_transform(poly_circ, st_crs(x))
-    poly_circ <- as(poly_circ, 'Spatial')
+    pt_sf <- sf::st_as_sf(pt_coords, coords = c("x", "y"), crs = sf::st_crs(x)) %>%
+      sf::st_transform(epsg_proj)
+    poly_circ <- sf::st_buffer(pt_sf, size)
+    poly_circ <- sf::st_transform(poly_circ, sf::st_crs(x))
+    poly_circ <- sf::as_Spatial(poly_circ)
     cropped_x <- crop(ext_x, poly_circ)
     cropped_x <- mask(cropped_x, poly_circ)
   }
+
   # calculate metric
   if (metric == 'sa') {
     outval <- sa(cropped_x)
@@ -219,8 +254,89 @@ window_metric <- function(x, window = 'square', size = 3, epsg_proj = NULL,
   if (metric == 'sq') {
     outval <- sq(cropped_x)
   }
+  if (metric == 's10z') {
+    outval <- s10z(cropped_x)
+  }
+  if (metric == 'sdq') {
+    outval <- sdq(cropped_x)
+  }
+  if (metric == 'sdq6') {
+    outval <- sdq6(cropped_x)
+  }
+  if (metric == 'sdr') {
+    outval <- sdr(cropped_x)
+  }
+  if (metric == 'sbi') {
+    outval <- sbi(cropped_x)
+  }
+  if (metric == 'sci') {
+    outval <- sci(cropped_x)
+  }
+  if (metric == 'ssk_adj') {
+    outval <- ssk(cropped_x, adj = TRUE)
+  }
+  if (metric == 'ssk') {
+    outval <- ssk(cropped_x, adj = FALSE)
+  }
+  if (metric == 'sku_exc') {
+    outval <- sku(cropped_x, excess = TRUE)
+  }
+  if (metric == 'sku') {
+    outval <- sku(cropped_x, excess = FALSE)
+  }
+  if (metric == 'sds') {
+    outval <- sds(cropped_x)
+  }
+  if (metric == 'sfd') {
+    outval <- sfd(cropped_x)
+  }
   if (metric == 'srw') {
     outval <- srw(cropped_x, plot = FALSE)[[1]]
+  }
+  if (metric == 'srwi') {
+    outval <- srw(cropped_x, plot = FALSE)[[2]]
+  }
+  if (metric == 'shw') {
+    outval <- srw(cropped_x, plot = FALSE)[[3]]
+  }
+  if (metric == 'std') {
+    outval <- mean(std(cropped_x, plot = FALSE)[[1]], na.rm = TRUE)
+  }
+  if (metric == 'stdi') {
+    outval <- std(cropped_x, plot = FALSE)[[2]]
+  }
+  if (metric == 'svi') {
+    outval <- svi(cropped_x)
+  }
+  if (metric == 'str') {
+    outval <- str(cropped_x, threshold = threshold)
+  }
+  if (metric == 'ssc') {
+    outval <- ssc(cropped_x)
+  }
+  if (metric == 'sv') {
+    outval <- sv(cropped_x)
+  }
+  if (metric == 'sph') {
+    outval <- sph(cropped_x)
+  }
+  if (metric == 'sk') {
+    outval <- sk(cropped_x)
+  }
+  if (metric == 'smean') {
+    outval <- smean(cropped_x)
+  }
+  if (metric == 'spk') {
+    outval <- spk(cropped_x)
+  }
+  if (metric == 'svk') {
+    outval <- svk(cropped_x)
+  }
+  if (metric == 'scl') {
+    outval <- scl(cropped_x, threshold = threshold, plot = FALSE)
+  }
+  if (metric == 'sdc') {
+    outval <- sdc(cropped_x, low = low, high = high)
   }
   return(outval)
 }
