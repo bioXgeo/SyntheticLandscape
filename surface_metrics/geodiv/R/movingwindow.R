@@ -71,7 +71,7 @@
 #'
 #' # get a surface of root mean square roughness
 #' sbi_img <- texture_image(x = x, window = 'square',
-#' size = 11, metric = 'sbi', parallel = TRUE)
+#' size = 11, metric = 'sbi', parallel = FALSE)
 #'
 #' # plot the result
 #' plot(sbi_img)
@@ -126,6 +126,8 @@ if(class(metric) != 'character') {stop('metric must be a character.')}
   out <- x
 
   if (parallel == FALSE) {
+    result <- c()
+
     for (i in pixlist) {
       cat('Pixel #: ', i, '\n')
       pt_coords <- coords[i, ]
@@ -133,28 +135,25 @@ if(class(metric) != 'character') {stop('metric must be a character.')}
       colnum <- colFromCell(x, i)
 
       if (window_type == 'square') {
-        out[rownum, colnum] <- window_metric(x, 'square', size, epsg_proj = epsg_proj, rownum, colnum, metric, threshold, low, high)
+        outval <- window_metric(x, 'square', size, epsg_proj = epsg_proj, rownum, colnum, metric, threshold, low, high)
       } else {
-        out[rownum, colnum] <- window_metric(x, 'circle', size, epsg_proj = epsg_proj, rownum, colnum, metric, threshold, low, high)
+        outval <- window_metric(x, 'circle', size, epsg_proj = epsg_proj, rownum, colnum, metric, threshold, low, high)
       }
+
+      result <- c(result, outval)
     }
   } else {
 
     # make and start cluster
-    try(snow::stopCluster(cl), silent = TRUE)
-    cl <- snow::makeCluster(ncores)
+    try(stopCluster(cl), silent = TRUE)
+    cl <- makeCluster(ncores)
     doSNOW::registerDoSNOW(cl)
-    snow::clusterExport(cl = cl, list = list('x', 'out', 'coords', 'size',
+    clusterExport(cl = cl, list = list('x', 'out', 'coords', 'size',
                                              'window_type', 'epsg_proj',
                                              'metric', 'threshold', 'low', 'high'),
                         envir = environment())
-    invisible(snow::clusterEvalQ(cl, {
-      library(raster)
-      library(devtools)
-      library(sf)
-      devtools::load_all()}))
     # for each list in new_pixlist, run a for loop over all values
-    result <- snow::parLapply(cl, new_pixlist, function(inds) {
+    result <- parLapply(cl, new_pixlist, function(inds) {
       outvals <- c()
       for (i in inds) {
         pt_coords <- coords[i, ]
@@ -170,7 +169,7 @@ if(class(metric) != 'character') {stop('metric must be a character.')}
       }
       return(outvals)
     })
-    snow::stopCluster(cl)
+    stopCluster(cl)
   }
 
   out <- setValues(out, unlist(result))
@@ -243,11 +242,8 @@ if(class(metric) != 'character') {stop('metric must be a character.')}
 #' x <- crop(normforest, extent(-123, -122.99, 43, 43.01))
 #'
 #' # get a surface of root mean square roughness
-#' sbi_img <- texture_image(x = x, window = 'circle',
-#' size = 90, epsg_proj = 5070, metric = 'sbi')
-#'
-#' # plot the result
-#' plot(sbi_img)
+#' sbi_img <- window_metric(x = x, window = 'circle',
+#' size = 90, epsg_proj = 5070, rownum = 3, colnum = 3, metric = 'sbi')
 #' @export
 window_metric <- function(x, window_type = 'square', size = 11, epsg_proj = 5070,
                           rownum, colnum, metric, threshold = NULL, low = NULL, high = NULL) {
@@ -308,7 +304,7 @@ window_metric <- function(x, window_type = 'square', size = 11, epsg_proj = 5070
     # fill in middle
     ext_x[(size + 1):(nrow(ext_x) - size), (size + 1):(ncol(ext_x) - size)] <- getValues(x)
     # fill in corners with nearest point value (always the same)
-    ext_x_mat <- zoo::na.approx(matrix(ext_x, nrow = nrow(ext_x), ncol = ncol(ext_x)), rule = 2)
+    ext_x_mat <- na.approx(matrix(ext_x, nrow = nrow(ext_x), ncol = ncol(ext_x)), rule = 2)
     ext_x <- setValues(ext_x, t(ext_x_mat))
 
     # crop to square
@@ -358,11 +354,11 @@ window_metric <- function(x, window_type = 'square', size = 11, epsg_proj = 5070
     pt_coords <- coords[pt_ind, ]
 
     # crop to circle
-    pt_sf <- sf::st_as_sf(pt_coords, coords = c("x", "y"), crs = sf::st_crs(x))
-    pt_sf <- sf::st_transform(pt_sf, epsg_proj)
-    poly_circ <- sf::st_buffer(pt_sf, size)
-    poly_circ <- sf::st_transform(poly_circ, sf::st_crs(x))
-    poly_circ <- sf::as_Spatial(poly_circ)
+    pt_sf <- st_as_sf(pt_coords, coords = c("x", "y"), crs = st_crs(x))
+    pt_sf <- st_transform(pt_sf, epsg_proj)
+    poly_circ <- st_buffer(pt_sf, size)
+    poly_circ <- st_transform(poly_circ, st_crs(x))
+    poly_circ <- as_Spatial(poly_circ)
     cropped_x <- crop(ext_x, poly_circ)
     cropped_x <- mask(cropped_x, poly_circ)
   }

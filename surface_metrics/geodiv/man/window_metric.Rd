@@ -86,9 +86,6 @@ data(normforest)
 x <- crop(normforest, extent(-123, -122.99, 43, 43.01))
 
 # get a surface of root mean square roughness
-sbi_img <- texture_image(x = x, window = 'circle',
-size = 90, epsg_proj = 5070, metric = 'sbi')
-
-# plot the result
-plot(sbi_img)
+sbi_img <- window_metric(x = x, window = 'circle',
+size = 90, epsg_proj = 5070, rownum = 3, colnum = 3, metric = 'sbi')
 }
