@@ -41,6 +41,41 @@ value for the window surrounding that pixel.
 Calculates the various texture metrics over a window centered
 on an individual pixel.
 }
+\details{
+Metrics available:
+\enumerate {
+   \item{\code{'sa'}: average surface roughness}
+   \item{\code{'sq'}: root mean square roughness}
+   \item{\code{'s10z'}: ten-point height}
+   \item{\code{'sdq'}: root mean square slope of surface, 2-point method}
+   \item{\code{'sdq6'}: root mean square slope of surface, 7-point method}
+   \item{\code{'sdr'}: surface area ratio}
+   \item{\code{'sbi'}: surface bearing index}
+   \item{\code{'sci'}: core fluid retention index}
+   \item{\code{'ssk_adj'}: adjusted skewness}
+   \item{\code{'ssk'}: skewness}
+   \item{\code{'sku_exc'}: excess kurtosis}
+   \item{\code{'sku'}: kurtosis}
+   \item{\code{'sds'}: summit density}
+   \item{\code{'sfd'}: 2d fractal dimension}
+   \item{\code{'srw'}: dominant radial wavelength}
+   \item{\code{'srwi'}: radial wavelength index}
+   \item{\code{'shw'}: mean half wavelength}
+   \item{\code{'std'}: angle of dominating texture}
+   \item{\code{'stdi'}: texture direction index}
+   \item{\code{'svi'}: valley fluid retention index}
+   \item{\code{'str'}: texture aspect ratio}
+   \item{\code{'ssc'}: mean summit curvature}
+   \item{\code{'sv'}: maximum valley depth}
+   \item{\code{'sph'}: maximum peak height}
+   \item{\code{'sk'}: core roughness depth}
+   \item{\code{'smean'}: mean peak height}
+   \item{\code{'svk'}: reduced valley depth}
+   \item{\code{'spk'}: reduced peak height}
+   \item{\code{'scl'}: correlation length}
+   \item{\code{'sdc'}: bearing area curve height interval}
+}
+}
 \examples{
 library(raster)
 

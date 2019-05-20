@@ -260,6 +260,12 @@ print(orforest)
 # run all functions
 run_all(orforest)
 
+# create a texture image for a small portion of the raster
+cat('texture image: ', '\n')
+small_orforest <- crop(orforest, extent(-123, -122.99, 43, 43.01))
+sbi_teximg <- texture_image(x = small_orforest, window_type = 'square', size = 11,
+                          metric = 'sbi', parallel = TRUE)
+
 # run everything for normforest -------------------------------------------
 
 data(normforest)
@@ -268,6 +274,12 @@ print(normforest)
 
 # run all functions
 run_all(normforest)
+
+# create a texture image for a small portion of the raster
+cat('texture image: ', '\n')
+small_normforest <- crop(normforest, extent(-123, -122.99, 43, 43.01))
+sbi_teximg <- texture_image(x = small_normforest, window_type = 'circle', size = 11,
+                            epsg_proj = 5070, metric = 'sbi', parallel = TRUE)
 
 # test for another raster -------------------------------------------------
 

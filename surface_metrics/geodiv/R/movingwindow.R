@@ -25,12 +25,43 @@
 #' \enumerate {
 #'    \item{\code{'sa'}: average surface roughness}
 #'    \item{\code{'sq'}: root mean square roughness}
+#'    \item{\code{'s10z'}: ten-point height}
+#'    \item{\code{'sdq'}: root mean square slope of surface, 2-point method}
+#'    \item{\code{'sdq6'}: root mean square slope of surface, 7-point method}
+#'    \item{\code{'sdr'}: surface area ratio}
+#'    \item{\code{'sbi'}: surface bearing index}
+#'    \item{\code{'sci'}: core fluid retention index}
+#'    \item{\code{'ssk_adj'}: adjusted skewness}
+#'    \item{\code{'ssk'}: skewness}
+#'    \item{\code{'sku_exc'}: excess kurtosis}
+#'    \item{\code{'sku'}: kurtosis}
+#'    \item{\code{'sds'}: summit density}
+#'    \item{\code{'sfd'}: 2d fractal dimension}
+#'    \item{\code{'srw'}: dominant radial wavelength}
+#'    \item{\code{'srwi'}: radial wavelength index}
+#'    \item{\code{'shw'}: mean half wavelength}
+#'    \item{\code{'std'}: angle of dominating texture}
+#'    \item{\code{'stdi'}: texture direction index}
+#'    \item{\code{'svi'}: valley fluid retention index}
+#'    \item{\code{'str'}: texture aspect ratio}
+#'    \item{\code{'ssc'}: mean summit curvature}
+#'    \item{\code{'sv'}: maximum valley depth}
+#'    \item{\code{'sph'}: maximum peak height}
+#'    \item{\code{'sk'}: core roughness depth}
+#'    \item{\code{'smean'}: mean peak height}
+#'    \item{\code{'svk'}: reduced valley depth}
+#'    \item{\code{'spk'}: reduced peak height}
+#'    \item{\code{'scl'}: correlation length}
+#'    \item{\code{'sdc'}: bearing area curve height interval}
 #' }
 #' @examples
 #' library(raster)
 #'
 #' # import raster image
 #' data(normforest)
+#'
+#' # crop raster to much smaller area
+#' normforest <- crop(normforest, extent(-123, -122.99, 43, 43.01))
 #'
 #' # get a surface of root mean square roughness
 #' sq_img <- texture_image(x = normforest, window = 'square',
@@ -46,9 +77,7 @@ texture_image <- function(x, window_type = 'square', size = 11, epsg_proj = 5070
   if(class(window_type) != 'character') {stop('window_type must be a string.')}
   if(class(size) != 'numeric') {stop('size must be numeric.')}
   if(class(epsg_proj) != 'numeric') {stop('epsg_proj must be numeric.')}
-  if(class(rownum) != 'numeric' & class(rownum) != 'integer') {stop('rownum must be numeric or integer.')}
-  if(class(colnum) != 'numeric' & class(colnum) != 'integer') {stop('colnum must be numeric or integer.')}
-  if(class(metric) != 'character') {stop('metric must be a character.')}
+if(class(metric) != 'character') {stop('metric must be a character.')}
   if(!is.null(threshold) & class(threshold) != 'numeric') {stop('threshold must be numeric.')}
   if(!is.null(low) & class(low) != 'numeric') {stop('low must be numeric.')}
   if(!is.null(high) & class(high) != 'numeric') {stop('high must be numeric.')}
@@ -56,8 +85,6 @@ texture_image <- function(x, window_type = 'square', size = 11, epsg_proj = 5070
   if(!is.null(low) & is.null(high)) {stop('high value is required if low value is given.')}
   if(!is.null(high) & is.null(low)) {stop('high value is required if low value is given.')}
   if(!is.null(threshold) & length(threshold) > 1) {stop('too many values provided to threshold.')}
-  if(length(rownum) > 1) {stop('too many values provided to rownum.')}
-  if(length(colnum) > 1) {stop('too many values provided to colnum.')}
   if(length(metric) > 1) {stop('too many values provided for metric.')}
   if(length(epsg_proj) > 1) {stop('too many values provided to epsg_proj.')}
   if(length(size) > 1) {stop('too many values provided to size.')}
@@ -167,6 +194,39 @@ texture_image <- function(x, window_type = 'square', size = 11, epsg_proj = 5070
 #' @param high Numeric. High value (0 - 1) if calculating \code{sdc}.
 #' @return A raster with pixel values representative of the metric
 #' value for the window surrounding that pixel.
+#' @details Metrics available:
+#' \enumerate {
+#'    \item{\code{'sa'}: average surface roughness}
+#'    \item{\code{'sq'}: root mean square roughness}
+#'    \item{\code{'s10z'}: ten-point height}
+#'    \item{\code{'sdq'}: root mean square slope of surface, 2-point method}
+#'    \item{\code{'sdq6'}: root mean square slope of surface, 7-point method}
+#'    \item{\code{'sdr'}: surface area ratio}
+#'    \item{\code{'sbi'}: surface bearing index}
+#'    \item{\code{'sci'}: core fluid retention index}
+#'    \item{\code{'ssk_adj'}: adjusted skewness}
+#'    \item{\code{'ssk'}: skewness}
+#'    \item{\code{'sku_exc'}: excess kurtosis}
+#'    \item{\code{'sku'}: kurtosis}
+#'    \item{\code{'sds'}: summit density}
+#'    \item{\code{'sfd'}: 2d fractal dimension}
+#'    \item{\code{'srw'}: dominant radial wavelength}
+#'    \item{\code{'srwi'}: radial wavelength index}
+#'    \item{\code{'shw'}: mean half wavelength}
+#'    \item{\code{'std'}: angle of dominating texture}
+#'    \item{\code{'stdi'}: texture direction index}
+#'    \item{\code{'svi'}: valley fluid retention index}
+#'    \item{\code{'str'}: texture aspect ratio}
+#'    \item{\code{'ssc'}: mean summit curvature}
+#'    \item{\code{'sv'}: maximum valley depth}
+#'    \item{\code{'sph'}: maximum peak height}
+#'    \item{\code{'sk'}: core roughness depth}
+#'    \item{\code{'smean'}: mean peak height}
+#'    \item{\code{'svk'}: reduced valley depth}
+#'    \item{\code{'spk'}: reduced peak height}
+#'    \item{\code{'scl'}: correlation length}
+#'    \item{\code{'sdc'}: bearing area curve height interval}
+#' }
 #' @examples
 #' library(raster)
 #'
