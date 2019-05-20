@@ -24,11 +24,16 @@ index, and mean half wavelength of the radial Fourier spectrum.
 See Kedron et al. (2018) for more detailed description.
 }
 \examples{
+library(raster)
+
 # import raster image
 data(normforest)
 
+# crop raster to much smaller area
+x <- crop(normforest, extent(-123, -122.99, 43, 43.01))
+
 # calculate metrics
-srwvals <- srw(normforest)
+srwvals <- srw(x)
 
 # extract each value
 Srw <- srwvals[[1]]

@@ -11,11 +11,16 @@
 #' @return A list containing numeric values for the angle of
 #'   dominating texture and the texture direction index.
 #' @examples
+#' library(raster)
+#'
 #' # import raster image
 #' data(normforest)
 #'
+#' # crop raster to much smaller area
+#' x <- crop(normforest, extent(-123, -122.99, 43, 43.01))
+#'
 #' # calculate Std and Stdi
-#' stdvals <- std(normforest)
+#' stdvals <- std(x)
 #'
 #' # extract each value
 #' Std <- stdvals[[1]]
@@ -123,11 +128,16 @@ std <- function(x, plot = FALSE) {
 #'   radial wavelength, radial wavelength index, and mean half
 #'   wavelength.
 #' @examples
+#' library(raster)
+#'
 #' # import raster image
 #' data(normforest)
 #'
+#' # crop raster to much smaller area
+#' x <- crop(normforest, extent(-123, -122.99, 43, 43.01))
+#'
 #' # calculate metrics
-#' srwvals <- srw(normforest)
+#' srwvals <- srw(x)
 #'
 #' # extract each value
 #' Srw <- srwvals[[1]]
@@ -250,11 +260,16 @@ srw <- function(x, plot = FALSE) {
 #' @return A numeric value representing the 2D fractal dimension of
 #'   the image.
 #' @examples
+#' library(raster)
+#'
 #' # import raster image
 #' data(normforest)
 #'
+#' # crop raster to much smaller area
+#' x <- crop(normforest, extent(-123, -122.99, 43, 43.01))
+#'
 #' # calculate the fractal dimension
-#' Sfd <- sfd(normforest)
+#' Sfd <- sfd(x)
 #' @export
 sfd <- function(x) {
   if(class(x) != 'RasterLayer') {stop('x must be a raster.')}

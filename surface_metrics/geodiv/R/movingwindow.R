@@ -15,6 +15,12 @@
 #' crop raster to each circular window.
 #' @param metric Character. Metric to calculate for each window. Metrics
 #' are listed below.
+#' @param threshold Numeric. Value of autocorrelation distance (0 - 1), if
+#' calculating \code{scl} or \code{str}.
+#' @param low Numeric. Low value (0 - 1) if calculating \code{sdc}.
+#' @param high Numeric. High value (0 - 1) if calculating \code{sdc}.
+#' @return A raster with pixel values representative of the metric
+#' value for the window surrounding that pixel.
 #' @param parallel Logical. Option to run the calculations in
 #' parallel on available cores.
 #' @param ncores Numeric. If parallel is TRUE, number of cores on which to
@@ -22,7 +28,7 @@
 #' @return A raster with pixel values representative of the metric
 #' value for the window surrounding that pixel.
 #' @details Metrics available:
-#' \enumerate {
+#' \enumerate{
 #'    \item{\code{'sa'}: average surface roughness}
 #'    \item{\code{'sq'}: root mean square roughness}
 #'    \item{\code{'s10z'}: ten-point height}
@@ -61,14 +67,14 @@
 #' data(normforest)
 #'
 #' # crop raster to much smaller area
-#' normforest <- crop(normforest, extent(-123, -122.99, 43, 43.01))
+#' x <- crop(normforest, extent(-123, -122.99, 43, 43.01))
 #'
 #' # get a surface of root mean square roughness
-#' sq_img <- texture_image(x = normforest, window = 'square',
-#' size = 11, epsg_proj = 5070, metric = 'sq', parallel = TRUE)
+#' sbi_img <- texture_image(x = x, window = 'square',
+#' size = 11, metric = 'sbi', parallel = TRUE)
 #'
 #' # plot the result
-#' plot(sq_img)
+#' plot(sbi_img)
 #' @export
 texture_image <- function(x, window_type = 'square', size = 11, epsg_proj = 5070, metric, threshold = NULL,
                           low = NULL, high = NULL, parallel = TRUE, ncores = NULL){
@@ -195,7 +201,7 @@ if(class(metric) != 'character') {stop('metric must be a character.')}
 #' @return A raster with pixel values representative of the metric
 #' value for the window surrounding that pixel.
 #' @details Metrics available:
-#' \enumerate {
+#' \enumerate{
 #'    \item{\code{'sa'}: average surface roughness}
 #'    \item{\code{'sq'}: root mean square roughness}
 #'    \item{\code{'s10z'}: ten-point height}
@@ -233,12 +239,15 @@ if(class(metric) != 'character') {stop('metric must be a character.')}
 #' # import raster image
 #' data(normforest)
 #'
+#' # crop raster to much smaller area
+#' x <- crop(normforest, extent(-123, -122.99, 43, 43.01))
+#'
 #' # get a surface of root mean square roughness
-#' sq_img <- texture_image(x = normforest, window = 'circle',
-#' size = 90, epsg_proj = 5070, metric = 'sq')
+#' sbi_img <- texture_image(x = x, window = 'circle',
+#' size = 90, epsg_proj = 5070, metric = 'sbi')
 #'
 #' # plot the result
-#' plot(sq_img)
+#' plot(sbi_img)
 #' @export
 window_metric <- function(x, window_type = 'square', size = 11, epsg_proj = 5070,
                           rownum, colnum, metric, threshold = NULL, low = NULL, high = NULL) {
@@ -349,8 +358,8 @@ window_metric <- function(x, window_type = 'square', size = 11, epsg_proj = 5070
     pt_coords <- coords[pt_ind, ]
 
     # crop to circle
-    pt_sf <- sf::st_as_sf(pt_coords, coords = c("x", "y"), crs = sf::st_crs(x)) %>%
-      sf::st_transform(epsg_proj)
+    pt_sf <- sf::st_as_sf(pt_coords, coords = c("x", "y"), crs = sf::st_crs(x))
+    pt_sf <- sf::st_transform(pt_sf, epsg_proj)
     poly_circ <- sf::st_buffer(pt_sf, size)
     poly_circ <- sf::st_transform(poly_circ, sf::st_crs(x))
     poly_circ <- sf::as_Spatial(poly_circ)

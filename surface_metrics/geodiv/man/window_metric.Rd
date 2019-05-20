@@ -43,7 +43,7 @@ on an individual pixel.
 }
 \details{
 Metrics available:
-\enumerate {
+\enumerate{
    \item{\code{'sa'}: average surface roughness}
    \item{\code{'sq'}: root mean square roughness}
    \item{\code{'s10z'}: ten-point height}
@@ -82,10 +82,13 @@ library(raster)
 # import raster image
 data(normforest)
 
+# crop raster to much smaller area
+x <- crop(normforest, extent(-123, -122.99, 43, 43.01))
+
 # get a surface of root mean square roughness
-sq_img <- texture_image(x = normforest, window = 'circle',
-size = 90, epsg_proj = 5070, metric = 'sq')
+sbi_img <- texture_image(x = x, window = 'circle',
+size = 90, epsg_proj = 5070, metric = 'sbi')
 
 # plot the result
-plot(sq_img)
+plot(sbi_img)
 }

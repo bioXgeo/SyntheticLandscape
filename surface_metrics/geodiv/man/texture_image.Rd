@@ -23,6 +23,13 @@ crop raster to each circular window.}
 \item{metric}{Character. Metric to calculate for each window. Metrics
 are listed below.}
 
+\item{threshold}{Numeric. Value of autocorrelation distance (0 - 1), if
+calculating \code{scl} or \code{str}.}
+
+\item{low}{Numeric. Low value (0 - 1) if calculating \code{sdc}.}
+
+\item{high}{Numeric. High value (0 - 1) if calculating \code{sdc}.}
+
 \item{parallel}{Logical. Option to run the calculations in
 parallel on available cores.}
 
@@ -30,6 +37,9 @@ parallel on available cores.}
 run the calculations. Defaults to all available, minus 1.}
 }
 \value{
+A raster with pixel values representative of the metric
+value for the window surrounding that pixel.
+
 A raster with pixel values representative of the metric
 value for the window surrounding that pixel.
 }
@@ -40,7 +50,7 @@ texture metric.
 }
 \details{
 Metrics available:
-\enumerate {
+\enumerate{
    \item{\code{'sa'}: average surface roughness}
    \item{\code{'sq'}: root mean square roughness}
    \item{\code{'s10z'}: ten-point height}
@@ -79,10 +89,13 @@ library(raster)
 # import raster image
 data(normforest)
 
+# crop raster to much smaller area
+x <- crop(normforest, extent(-123, -122.99, 43, 43.01))
+
 # get a surface of root mean square roughness
-sq_img <- texture_image(x = normforest, window = 'square',
-size = 11, epsg_proj = 5070, metric = 'sq', parallel = TRUE)
+sbi_img <- texture_image(x = x, window = 'square',
+size = 11, metric = 'sbi', parallel = TRUE)
 
 # plot the result
-plot(sq_img)
+plot(sbi_img)
 }

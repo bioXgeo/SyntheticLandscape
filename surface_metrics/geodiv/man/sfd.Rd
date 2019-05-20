@@ -20,9 +20,14 @@ to R, of the Matlab function 'fdsurfft' version 1.0.0.0
 developed by Jianbo Zhang.
 }
 \examples{
+library(raster)
+
 # import raster image
 data(normforest)
 
+# crop raster to much smaller area
+x <- crop(normforest, extent(-123, -122.99, 43, 43.01))
+
 # calculate the fractal dimension
-Sfd <- sfd(normforest)
+Sfd <- sfd(x)
 }

@@ -23,11 +23,16 @@ direction index of the Fourier spectrum image calculated
 from a raster image (see Kedron et al. 2018).
 }
 \examples{
+library(raster)
+
 # import raster image
 data(normforest)
 
+# crop raster to much smaller area
+x <- crop(normforest, extent(-123, -122.99, 43, 43.01))
+
 # calculate Std and Stdi
-stdvals <- std(normforest)
+stdvals <- std(x)
 
 # extract each value
 Std <- stdvals[[1]]

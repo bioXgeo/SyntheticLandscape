@@ -109,11 +109,16 @@ aacf <- function(x) {
 #'   than one threshold value is specified, the order of this list will be
 #'   \code{[minval(t1), minval(t2), maxval(t1), maxval(t2)]}.
 #' @examples
+#' library(raster)
+#'
 #' # import raster image
 #' data(normforest)
 #'
+#' # crop raster to much smaller area
+#' x <- crop(normforest, extent(-123, -122.99, 43, 43.01))
+#'
 #' # calculate aacf img and matrix
-#' aacf_list <- aacf(normforest)
+#' aacf_list <- aacf(x)
 #'
 #' # estimate the fastest/slowest declines to 0.20 and 0.37 (1/e) autocorrelation
 #' sclvals <- scl(aacf_list[[2]])
@@ -194,18 +199,6 @@ scl <- function(x, threshold = c(0.20, 1 / exp(1)), plot = FALSE) {
 #' @return A list containing the minimum distances from an
 #'   autocorrelation value of 1 to the specified autocorrelation value < 1.
 #'   Distances are in the units of the x, y coordinates of the raster image.
-#' @examples
-#' # import raster image
-#' data(normforest)
-#'
-#' # calculate aacf img and matrix
-#' aacf_list <- aacf(normforest)
-#'
-#' # estimate the fastest/slowest declines to 0.20 and 0.37 (1/e) autocorrelation
-#' sclvals <- scl(aacf_list[[2]])
-#'
-#' # calculate Scl20, the minimum distance to an autocorrelation value of 0.2 in the AACF
-#' Scl20 <- sclvals[[1]]
 .mindist <- function(threshold, Aalpha, aacfimg) {
   # get index of minimum <= threshold value
   decay_ind <- list()
@@ -290,12 +283,17 @@ scl <- function(x, threshold = c(0.20, 1 / exp(1)), plot = FALSE) {
 #'   containing the texture aspect ratio(s) for the input autocorrelation
 #'   value(s).
 #' @examples
+#' library(raster)
+#'
 #' # import raster image
 #' data(normforest)
 #'
+#' # crop raster to much smaller area
+#' x <- crop(normforest, extent(-123, -122.99, 43, 43.01))
+#'
 #' # estimate the texture aspect ratio for autocorrelation
 #' # thresholds of 0.20 and 0.37 (1/e)
-#' strvals <- str(normforest, threshold = c(0.20, 1 / exp(1)))
+#' strvals <- str(x, threshold = c(0.20, 1 / exp(1)))
 #'
 #' # calculate Str20, the texture aspect ratio for
 #' # autocorrelation value of 0.2 in the AACF
