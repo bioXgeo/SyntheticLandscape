@@ -9,7 +9,7 @@
 # 2: open the geodiv R project (geodiv.Rproj) in the geodiv folder
 # 3: Run geodiv using both the 'normforest' and 'orforest' rasters included
 #    in the package.
-# 4: Run geodiv with a test raster of your choosing (make sure that it is
+# 4: Run geodiv with a test raster of your choosing (make sure that it's
 #    fairly small).
 # 5: Run the r cmd check
 # 6: Add resulting log file (geodiv_logfile.txt) to the geodiv Google Drive directory.
@@ -20,7 +20,7 @@
 
 # change paths ------------------------------------------------------------
 
-logfile_path <- '/home/annie/Desktop/geodiv_logfile_ACS.txt' # change end initials
+logfile_path <- '/home/annie/Desktop/geodiv_logfile_ACS.txt' # change path and end initials
 otherrast_path <- # insert path to new (small) raster here
 
 # load geodiv -------------------------------------------------------------
