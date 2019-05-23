@@ -27,7 +27,7 @@ otherrast_path <- # insert path to new (small) raster here
 
 sink(logfile_path, split = TRUE)
 
-requiredPackages <- c('devtools', 'roxygen2') #The packages I need
+requiredPackages <- c('devtools', 'roxygen2', 'raster') #The packages I need
 # install/load required packages:
 if (exists("requiredPackages")) {
   # install required packages that are not installed yet:
