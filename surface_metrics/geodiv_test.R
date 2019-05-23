@@ -3,16 +3,17 @@
 # This tests all functions associated with the geodiv package and writes
 # errors to a log file.
 
-# Instructions (steps 1-3 are coded below):
-# 1: Run geodiv using both the 'normforest' and 'orforest' rasters included
+# Instructions (steps 2-4 are coded below):
+# 1: Load geodiv.Rproj
+# 2: Run geodiv using both the 'normforest' and 'orforest' rasters included
 #    in the package.
-# 2: Run geodiv with a test raster of your choosing (make sure that it's
+# 3: Run geodiv with a test raster of your choosing (make sure that it's
 #    fairly small).
-# 3: Run the r cmd check
-# 4: Add resulting log file (geodiv_logfile.txt) to the geodiv Google Drive directory.
-# 5: If you have any ideas for extra components for this or the next release,
+# 4: Run the r cmd check
+# 5: Add resulting log file (geodiv_logfile.txt) to the geodiv Google Drive directory.
+# 6: If you have any ideas for extra components for this or the next release,
 #    add those to the ideas doc on Google Drive.
-# 6: If you try anything else out and find an issue, add it to the issues doc on
+# 7: If you try anything else out and find an issue, add it to the issues doc on
 #    Google Drive.
 
 # change paths ------------------------------------------------------------
