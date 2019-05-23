@@ -3,19 +3,16 @@
 # This tests all functions associated with the geodiv package and writes
 # errors to a log file.
 
-# Instructions (duplicated from README, steps 3-5 are coded out below):
-# 1: Load geodiv: clone git repository onto local machine
-#    git repo: https://github.com/bioXgeo/SyntheticLandscape
-# 2: open the geodiv R project (geodiv.Rproj) in the geodiv folder
-# 3: Run geodiv using both the 'normforest' and 'orforest' rasters included
+# Instructions (steps 1-3 are coded below):
+# 1: Run geodiv using both the 'normforest' and 'orforest' rasters included
 #    in the package.
-# 4: Run geodiv with a test raster of your choosing (make sure that it's
+# 2: Run geodiv with a test raster of your choosing (make sure that it's
 #    fairly small).
-# 5: Run the r cmd check
-# 6: Add resulting log file (geodiv_logfile.txt) to the geodiv Google Drive directory.
-# 7: If you have any ideas for extra components for this or the next release,
+# 3: Run the r cmd check
+# 4: Add resulting log file (geodiv_logfile.txt) to the geodiv Google Drive directory.
+# 5: If you have any ideas for extra components for this or the next release,
 #    add those to the ideas doc on Google Drive.
-# 8: If you try anything else out and find an issue, add it to the issues doc on
+# 6: If you try anything else out and find an issue, add it to the issues doc on
 #    Google Drive.
 
 # change paths ------------------------------------------------------------
