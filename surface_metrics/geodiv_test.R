@@ -27,10 +27,22 @@ otherrast_path <- # insert path to new (small) raster here
 
 sink(logfile_path, split = TRUE)
 
-library(devtools)
-library(roxygen2)
+requiredPackages <- c('devtools', 'roxygen2') #The packages I need
+# install/load required packages:
+if (exists("requiredPackages")) {
+  # install required packages that are not installed yet:
+  new.packages <- requiredPackages[!(requiredPackages %in%
+                                       installed.packages()[, "Package"])]
+  if(length(new.packages)) {
+    install.packages(new.packages)
+  }
+  
+  # load required packages:
+  lapply(requiredPackages, library, character.only = T)
+}
 
-devtools::load_all()
+devtools::install_github('bioXgeo/geodiv')
+library(geodiv)
 
 # write system information ------------------------------------------------
 
