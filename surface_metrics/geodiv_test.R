@@ -1,3 +1,4 @@
+
 # Test script for geodiv R package ----------------------------------------
 
 # This tests all functions associated with the geodiv package and writes
@@ -21,7 +22,7 @@
 logfile_path <- '/home/annie/Desktop/geodiv_logfile_ACS.txt' # change path and end initials
 otherrast_path <- # insert path to new (small) raster here
 
-# load geodiv -------------------------------------------------------------
+  # load geodiv -------------------------------------------------------------
 
 sink(logfile_path, split = TRUE)
 
@@ -34,7 +35,7 @@ if (exists("requiredPackages")) {
   if(length(new.packages)) {
     install.packages(new.packages)
   }
-  
+
   # load required packages:
   lapply(requiredPackages, library, character.only = T)
 }
